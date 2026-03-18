@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juros Compostos — Calculadora Interativa</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a18;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      padding: 2rem;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a1a18;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #6b6b68;
+      margin-bottom: 1.75rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .left { display: flex; flex-direction: column; gap: 14px; }
+
+    .ctrl-row { display: flex; flex-direction: column; gap: 4px; }
+    .ctrl-row label { font-size: 12px; color: #6b6b68; }
+    .ctrl-row .row { display: flex; align-items: center; gap: 8px; }
+    .ctrl-row .val { font-size: 13px; font-weight: 500; color: #1a1a18; min-width: 72px; text-align: right; }
+
+    input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: #d3d1c7;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #1a1a18;
+      cursor: pointer;
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #1a1a18;
+      border: none;
+      cursor: pointer;
+    }
+
+    .divider { border-top: 0.5px solid rgba(0,0,0,0.1); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    .card-main {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.15);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+    }
+    .card {
+      background: #f5f5f3;
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+    }
+    .card .lbl { font-size: 11px; color: #6b6b68; margin-bottom: 3px; }
+    .card .num { font-size: 16px; font-weight: 500; color: #1a1a18; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .formula {
+      font-size: 12px;
+      color: #6b6b68;
+      background: #f5f5f3;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      line-height: 1.8;
+    }
+    .formula strong { color: #1a1a18; font-weight: 500; }
+
+    .right { display: flex; flex-direction: column; }
+    .chart-wrap { position: relative; width: 100%; height: 300px; }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+      color: #6b6b68;
+      margin-top: 8px;
+    }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+
+    footer {
+      margin-top: 1.5rem;
+      font-size: 11px;
+      color: #a0a09c;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .layout { grid-template-columns: 1fr; }
+      .chart-wrap { height: 220px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Juros Compostos</h1>
+  <p class="subtitle">Calculadora interativa — ajuste os parâmetros e veja o crescimento do capital</p>
+
+  <div class="layout">
+    <div class="left">
+      <div class="ctrl-row">
+        <label>Capital inicial</label>
+        <div class="row">
+          <input type="range" id="pv" min="1000" max="100000" step="1000" value="10000">
+          <span class="val" id="pv-out">R$ 10.000</span>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <label>Taxa anual</label>
+        <div class="row">
+          <input type="range" id="rate" min="1" max="30" step="0.5" value="10">
+          <span class="val" id="rate-out">10,0%</span>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <label>Período</label>
+        <div class="row">
+          <input type="range" id="years" min="1" max="40" step="1" value="20">
+          <span class="val" id="years-out">20 anos</span>
+        </div>
+      </div>
+
+      <div class="divider">
+        <div class="card-main">
+          <div class="lbl" style="font-size:11px;color:#6b6b68;margin-bottom:4px;">Montante final</div>
+          <div class="num" id="fv" style="font-size:22px;font-weight:500;">—</div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="lbl">Investido</div>
+            <div class="num" id="invested">—</div>
+          </div>
+          <div class="card">
+            <div class="lbl">Juros gerados</div>
+            <div class="num" id="interest" style="color:#1D9E75;">—</div>
+          </div>
+        </div>
+        <div class="formula" id="formula-box"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="chart-wrap">
+        <canvas id="chart"></canvas>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:#378ADD;"></span>Capital inicial</span>
+        <span><span class="dot" style="background:#1D9E75;"></span>Juros acumulados</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>M = C × (1 + i)ⁿ &nbsp;·&nbsp; Calculadora para fins didáticos</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  const fmt = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+  let chart;
+
+  function calc() {
+    const pv    = +document.getElementById('pv').value;
+    const rate  = +document.getElementById('rate').value / 100;
+    const years = +document.getElementById('years').value;
+    const rateDisp = (+document.getElementById('rate').value).toFixed(1).replace('.', ',');
+
+    document.getElementById('pv-out').textContent    = fmt(pv);
+    document.getElementById('rate-out').textContent  = rateDisp + '%';
+    document.getElementById('years-out').textContent = years + ' ano' + (years > 1 ? 's' : '');
+
+    const fv = pv * Math.pow(1 + rate, years);
+    document.getElementById('fv').textContent       = fmt(fv);
+    document.getElementById('invested').textContent  = fmt(pv);
+    document.getElementById('interest').textContent  = fmt(fv - pv);
+
+    document.getElementById('formula-box').innerHTML =
+      '<strong>M = C × (1 + i)ⁿ</strong><br>' +
+      fmt(pv) + ' × (1 + ' + rateDisp + '%)^' + years +
+      '<br>= <strong>' + fmt(fv) + '</strong>';
+
+    const step = Math.max(1, Math.ceil(years / 20));
+    const labels = [], capitals = [], interests = [];
+    for (let y = 0; y <= years; y += step) {
+      labels.push('Ano ' + y);
+      const v = pv * Math.pow(1 + rate, y);
+      capitals.push(Math.round(pv));
+      interests.push(Math.round(v - pv));
+    }
+    if (labels[labels.length - 1] !== 'Ano ' + years) {
+      labels.push('Ano ' + years);
+      capitals.push(Math.round(pv));
+      interests.push(Math.round(fv - pv));
+    }
+
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = capitals;
+      chart.data.datasets[1].data = interests;
+      chart.update();
+    } else {
+      chart = new Chart(document.getElementById('chart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Capital inicial',    data: capitals,  backgroundColor: '#378ADD', stack: 's' },
+            { label: 'Juros acumulados',   data: interests, backgroundColor: '#1D9E75', stack: 's' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y) }
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              ticks: { autoSkip: true, maxTicksLimit: 10, color: '#888', font: { size: 11 } },
+              grid: { display: false }
+            },
+            y: {
+              stacked: true,
+              ticks: {
+                color: '#888', font: { size: 11 },
+                callback: v => 'R$' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)
+              },
+              grid: { color: 'rgba(0,0,0,0.06)' }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  ['pv', 'rate', 'years'].forEach(id =>
+    document.getElementById(id).addEventListener('input', calc)
+  );
+  calc();
+</script>
+</body>
+</html>
