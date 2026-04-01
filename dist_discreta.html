@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distribuições Discretas de Probabilidade</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f3; color: #1a1a18;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 2rem 1rem;
+    }
+    .container { background: #fff; border-radius: 16px; border: 0.5px solid rgba(0,0,0,0.12); padding: 2rem; width: 100%; max-width: 900px; }
+    h1 { font-size: 18px; font-weight: 500; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 13px; color: #6b6b68; margin-bottom: 1.75rem; }
+    .sec-title { font-size: 11px; font-weight: 500; color: #6b6b68; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .tbl { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+    .tbl th { font-size: 11px; font-weight: 500; color: #6b6b68; padding: 5px 6px; text-align: center; border-bottom: 0.5px solid #b4b2a9; }
+    .tbl td { padding: 4px 5px; text-align: center; vertical-align: middle; }
+    .tbl input[type=number] { width: 72px; font-size: 13px; padding: 4px 5px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; text-align: center; }
+    .tbl input[type=number]:focus { outline: none; border-color: #5f5e5a; }
+    .tbl .row-idx { font-size: 11px; color: #6b6b68; width: 18px; }
+    .btn-sm { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; cursor: pointer; }
+    .btn-sm:hover { background: #f5f5f3; }
+    .btn-sm:disabled { opacity: 0.35; cursor: default; }
+    .btn-nivel { font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #f5f5f3; color: #6b6b68; cursor: pointer; }
+    .btn-nivel:hover { color: #1a1a18; }
+    .soma-bar { height: 5px; border-radius: 3px; background: #f5f5f3; margin-bottom: 5px; overflow: hidden; }
+    .soma-fill { height: 100%; border-radius: 3px; background: #1D9E75; transition: width 0.15s, background 0.15s; }
+    .soma-fill.over { background: #E24B4A; }
+    .warn { font-size: 12px; color: #A32D2D; min-height: 15px; margin-bottom: 6px; }
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1.25rem; }
+    .stat-card { background: #f5f5f3; border-radius: 8px; padding: 0.6rem 0.75rem; }
+    .stat-card .lbl { font-size: 11px; color: #6b6b68; margin-bottom: 2px; }
+    .stat-card .num { font-size: 18px; font-weight: 500; color: #1a1a18; }
+    .stat-card.hi { background: #e6f1fb; }
+    .stat-card.hi .lbl { color: #185FA5; }
+    .stat-card.hi .num { color: #185FA5; }
+    .shift-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .shift-row label { font-size: 13px; color: #6b6b68; }
+    .shift-row input[type=number] { width: 72px; font-size: 13px; padding: 4px 7px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; }
+    .sim-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    .sim-row label { font-size: 13px; color: #6b6b68; }
+    .sim-row input[type=range] { flex: 1; accent-color: #1a1a18; }
+    .sim-stat { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 0.75rem; }
+    footer { margin-top: 1.5rem; font-size: 11px; color: #a0a09c; text-align: center; }
+    @media (max-width: 600px) { .layout { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Distribuições Discretas de Probabilidade</h1>
+  <p class="subtitle">Insira os pares (x, p(x)), explore estatísticas teóricas e simule experimentos</p>
+
+  <div class="layout">
+    <div>
+      <div class="sec-title">Distribuição de probabilidade</div>
+      <table class="tbl">
+        <thead>
+          <tr><th></th><th>x</th><th>p(x)</th>
+            <th><button class="btn-nivel" id="btn-nivel">⇌ nivelar</button></th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="font-size:11px;color:#6b6b68;text-align:right;padding-right:6px;">Σ p(x)</td>
+            <td><span id="soma-val" style="font-size:13px;font-weight:500;color:#1a1a18;">0,000</span></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="soma-bar"><div class="soma-fill" id="soma-fill" style="width:0%"></div></div>
+      <div class="warn" id="warn"></div>
+      <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+        <button class="btn-sm" id="btn-add">+ linha</button>
+        <button class="btn-sm" id="btn-rem">− linha</button>
+      </div>
+      <div class="sec-title">Transformação linear (c + x)</div>
+      <div class="shift-row">
+        <label>Somar a todos os x:</label>
+        <input type="number" id="shift-val" value="0" step="1">
+        <button class="btn-sm" id="btn-shift">Aplicar</button>
+        <button class="btn-sm" id="btn-reset-shift">Desfazer</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">Estatísticas teóricas</div>
+      <div class="stat-grid">
+        <div class="stat-card hi"><div class="lbl">E(X)</div><div class="num" id="ex">—</div></div>
+        <div class="stat-card hi"><div class="lbl">σ</div><div class="num" id="dp">—</div></div>
+        <div class="stat-card"><div class="lbl">Var(X)</div><div class="num" id="vx">—</div></div>
+        <div class="stat-card"><div class="lbl">Σ p(x)</div><div class="num" id="soma-card">—</div></div>
+      </div>
+      <div class="sec-title">Simulação</div>
+      <div class="sim-row">
+        <label>n:</label>
+        <input type="range" id="sim-n" min="2" max="100" step="1" value="20">
+        <span style="font-size:13px;font-weight:500;color:#1a1a18;min-width:28px;" id="sim-n-out">20</span>
+        <button class="btn-sm" id="btn-sim">Simular</button>
+      </div>
+      <div class="sim-stat">
+        <div class="stat-card"><div class="lbl">Média real</div><div class="num" id="sim-mean">—</div></div>
+        <div class="stat-card"><div class="lbl">DP real</div><div class="num" id="sim-dp">—</div></div>
+        <div class="stat-card"><div class="lbl">E(X) teórico</div><div class="num" id="sim-ex">—</div></div>
+      </div>
+      <div style="position:relative;width:100%;height:200px;">
+        <canvas id="hist-chart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>Distribuições Discretas · Material didático — Estatística · PUC-Campinas</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  const N_MIN=3, N_MAX=9;
+  let rows=5, origX=null, histChart=null;
+  let locked=[], pVals=[], xVals=[];
+  let pInputs=[], xInputs=[], lockBtns=[];
+
+  const STYLE_FREE   = 'width:34px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center;user-select:none;border:1.5px solid #d3d1c7;background:#ffffff;color:transparent;';
+  const STYLE_LOCKED = 'width:34px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center;user-select:none;border:1.5px solid #854F0B;background:#EF9F27;color:#ffffff;';
+
+  function applyLockStyle(btn, isLocked) {
+    btn.style.cssText = isLocked ? STYLE_LOCKED : STYLE_FREE;
+    btn.textContent   = '🔒';
+    btn.title         = isLocked ? 'Travado — clique para liberar' : 'Livre — clique para travar';
+  }
+
+  function syncPInputs() {
+    for(let i=0;i<rows;i++)
+      if(pInputs[i]) pInputs[i].value = isNaN(pVals[i]) ? '' : pVals[i].toFixed(4);
+  }
+
+  function rebalance(changedIdx) {
+    let sumFixed=0; const freeIdx=[];
+    for(let i=0;i<rows;i++){
+      if(i===changedIdx||locked[i]) sumFixed+=isNaN(pVals[i])?0:pVals[i];
+      else freeIdx.push(i);
+    }
+    const remaining=parseFloat((1-sumFixed).toFixed(6));
+    const warnEl=document.getElementById('warn');
+    if(remaining<-0.0005){ warnEl.textContent='Atenção: soma das probabilidades fixas ultrapassa 1.'; return; }
+    if(!freeIdx.length){ warnEl.textContent=''; return; }
+    if(remaining<0.0005){
+      freeIdx.forEach(i=>pVals[i]=0);
+      warnEl.textContent='Soma das travadas = 1. Probabilidades livres zeradas.';
+    } else {
+      const sumFree=freeIdx.reduce((a,i)=>a+(isNaN(pVals[i])?0:pVals[i]),0);
+      freeIdx.forEach(i=>{
+        pVals[i]=sumFree>0.0001
+          ? parseFloat(((isNaN(pVals[i])?0:pVals[i])/sumFree*remaining).toFixed(6))
+          : parseFloat((remaining/freeIdx.length).toFixed(6));
+      });
+      warnEl.textContent='';
+    }
+  }
+
+  function updateStats() {
+    const soma=pVals.reduce((a,v)=>a+(isNaN(v)?0:v),0);
+    document.getElementById('soma-val').textContent=soma.toFixed(3).replace('.',',');
+    const fill=document.getElementById('soma-fill');
+    fill.style.width=(Math.min(soma,1)*100).toFixed(1)+'%';
+    fill.classList.toggle('over',soma>1.0005);
+    const xs=xVals.slice(0,rows), ps=pVals.slice(0,rows);
+    const valid=xs.every(x=>!isNaN(x))&&ps.every(p=>!isNaN(p)&&p>=-0.0001)&&Math.abs(soma-1)<0.01;
+    if(valid){
+      const ex=xs.reduce((a,x,i)=>a+x*ps[i],0);
+      const vx=xs.reduce((a,x,i)=>a+ps[i]*(x-ex)**2,0);
+      document.getElementById('ex').textContent=ex.toFixed(4).replace('.',',');
+      document.getElementById('dp').textContent=Math.sqrt(vx).toFixed(4).replace('.',',');
+      document.getElementById('vx').textContent=vx.toFixed(4).replace('.',',');
+      document.getElementById('soma-card').textContent=soma.toFixed(4).replace('.',',');
+    } else {
+      ['ex','dp','vx','soma-card'].forEach(id=>document.getElementById(id).textContent='—');
+    }
+  }
+
+  function buildTable() {
+    const tbody=document.getElementById('tbl-body');
+    tbody.innerHTML=''; pInputs=[]; xInputs=[]; lockBtns=[];
+    for(let i=0;i<rows;i++){
+      const tr=document.createElement('tr');
+      const tdIdx=document.createElement('td'); tdIdx.className='row-idx'; tdIdx.textContent=i+1;
+      const tdX=document.createElement('td');
+      const inpX=document.createElement('input'); inpX.type='number'; inpX.step='1'; inpX.placeholder='x';
+      if(!isNaN(xVals[i])) inpX.value=xVals[i];
+      inpX.addEventListener('input',(function(ii){ return function(){ origX=null; xVals[ii]=parseFloat(this.value); updateStats(); }; })(i));
+      xInputs.push(inpX); tdX.appendChild(inpX);
+      const tdP=document.createElement('td');
+      const inpP=document.createElement('input'); inpP.type='number'; inpP.step='0.001'; inpP.min='0'; inpP.max='1'; inpP.placeholder='p(x)';
+      if(!isNaN(pVals[i])) inpP.value=pVals[i].toFixed(4);
+      inpP.addEventListener('input',(function(ii){ return function(){
+        const v=parseFloat(this.value);
+        if(!isNaN(v)){
+          if(locked[ii]){ locked[ii]=false; applyLockStyle(lockBtns[ii],false); }
+          pVals[ii]=v; rebalance(ii); syncPInputs(); updateStats();
+        }
+      }; })(i));
+      pInputs.push(inpP); tdP.appendChild(inpP);
+      const tdL=document.createElement('td');
+      const btn=document.createElement('button'); applyLockStyle(btn,locked[i]);
+      btn.addEventListener('click',(function(ii){ return function(){ locked[ii]=!locked[ii]; applyLockStyle(lockBtns[ii],locked[ii]); }; })(i));
+      lockBtns.push(btn); tdL.appendChild(btn);
+      tr.appendChild(tdIdx); tr.appendChild(tdX); tr.appendChild(tdP); tr.appendChild(tdL);
+      tbody.appendChild(tr);
+    }
+    updateStats();
+  }
+
+  document.getElementById('btn-nivel').addEventListener('click',()=>{
+    const freeIdx=locked.map((l,i)=>l?-1:i).filter(i=>i>=0);
+    if(!freeIdx.length) return;
+    const sumLocked=locked.reduce((a,l,i)=>a+(l?isNaN(pVals[i])?0:pVals[i]:0),0);
+    const remaining=parseFloat((1-sumLocked).toFixed(6));
+    if(remaining<0.0001){ document.getElementById('warn').textContent='Sem espaço para nivelar — travadas somam 1.'; return; }
+    freeIdx.forEach(i=>pVals[i]=parseFloat((remaining/freeIdx.length).toFixed(6)));
+    document.getElementById('warn').textContent='';
+    syncPInputs(); updateStats();
+  });
+
+  document.getElementById('btn-add').addEventListener('click',()=>{
+    if(rows>=N_MAX) return;
+    xVals.push(NaN); pVals.push(0); locked.push(false);
+    rows++; rebalance(-1); buildTable(); syncPInputs();
+    document.getElementById('btn-add').disabled=rows>=N_MAX;
+    document.getElementById('btn-rem').disabled=rows<=N_MIN;
+  });
+
+  document.getElementById('btn-rem').addEventListener('click',()=>{
+    if(rows<=N_MIN) return;
+    xVals.pop(); pVals.pop(); locked.pop();
+    rows--; rebalance(-1); buildTable(); syncPInputs();
+    document.getElementById('btn-add').disabled=rows>=N_MAX;
+    document.getElementById('btn-rem').disabled=rows<=N_MIN;
+  });
+
+  document.getElementById('btn-shift').addEventListener('click',()=>{
+    const c=parseFloat(document.getElementById('shift-val').value);
+    if(isNaN(c)) return;
+    if(!origX) origX=[...xVals];
+    xVals=origX.map(v=>v+c); buildTable();
+  });
+
+  document.getElementById('btn-reset-shift').addEventListener('click',()=>{
+    if(!origX) return;
+    xVals=[...origX]; origX=null;
+    document.getElementById('shift-val').value=0; buildTable();
+  });
+
+  document.getElementById('sim-n').addEventListener('input',function(){
+    document.getElementById('sim-n-out').textContent=this.value;
+  });
+
+  document.getElementById('btn-sim').addEventListener('click',()=>{
+    const xs=xVals.slice(0,rows), ps=pVals.slice(0,rows);
+    const soma=ps.reduce((a,v)=>a+(isNaN(v)?0:v),0);
+    const valid=xs.every(x=>!isNaN(x))&&ps.every(p=>!isNaN(p)&&p>=-0.0001)&&Math.abs(soma-1)<0.01;
+    if(!valid){ alert('Defina uma distribuição válida antes de simular.'); return; }
+    const n=+document.getElementById('sim-n').value;
+    const ex=xs.reduce((a,x,i)=>a+x*ps[i],0);
+    const cumP=[]; ps.reduce((a,p,i)=>{ cumP[i]=a+p; return cumP[i]; },0);
+    const samples=[];
+    for(let k=0;k<n;k++){
+      const r=Math.random();
+      const idx=cumP.findIndex(c=>r<=c+0.00001);
+      samples.push(xs[idx<0?xs.length-1:idx]);
+    }
+    const mean=samples.reduce((a,v)=>a+v,0)/n;
+    const variance=samples.reduce((a,v)=>a+(v-mean)**2,0)/n;
+    document.getElementById('sim-mean').textContent=mean.toFixed(4).replace('.',',');
+    document.getElementById('sim-dp').textContent=Math.sqrt(variance).toFixed(4).replace('.',',');
+    document.getElementById('sim-ex').textContent=ex.toFixed(4).replace('.',',');
+    const freq={}; xs.forEach(x=>freq[x]=0);
+    samples.forEach(v=>{ if(freq[v]!==undefined) freq[v]++; });
+    const labels=xs.map(String), data=xs.map(x=>freq[x]||0);
+    const maxY=Math.max(...data,1)+1;
+    const exNearest=xs.reduce((b,v)=>Math.abs(v-ex)<Math.abs(b-ex)?v:b,xs[0]);
+    if(histChart){ histChart.destroy(); histChart=null; }
+    histChart=new Chart(document.getElementById('hist-chart'),{
+      type:'bar',
+      data:{ labels, datasets:[
+        { label:'frequência', data, backgroundColor:'#378ADD', borderRadius:3 },
+        { type:'line', label:'E(X)', data:labels.map(l=>l===String(exNearest)?maxY:null),
+          borderColor:'#E24B4A', borderWidth:2, borderDash:[5,3], pointRadius:0, spanGaps:false }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ ticks:{color:'#888',font:{size:11}}, grid:{display:false} },
+          y:{ ticks:{color:'#888',font:{size:11},stepSize:1}, grid:{color:'rgba(128,128,128,0.1)'}, min:0, max:maxY }
+        }
+      }
+    });
+  });
+
+  xVals=[0,1,2,3,4]; pVals=[0.1,0.2,0.4,0.2,0.1]; locked=[false,false,false,false,false];
+  buildTable();
+  document.getElementById('btn-add').disabled=rows>=N_MAX;
+  document.getElementById('btn-rem').disabled=rows<=N_MIN;
+</script>
+</body>
+</html>
