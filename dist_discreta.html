@@ -19,8 +19,8 @@
     .tbl { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
     .tbl th { font-size: 11px; font-weight: 500; color: #6b6b68; padding: 5px 6px; text-align: center; border-bottom: 0.5px solid #b4b2a9; }
     .tbl td { padding: 4px 5px; text-align: center; vertical-align: middle; }
-    .tbl input[type=number] { width: 72px; font-size: 13px; padding: 4px 5px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; text-align: center; }
-    .tbl input[type=number]:focus { outline: none; border-color: #5f5e5a; }
+    .tbl input[type=text] { width: 72px; font-size: 13px; padding: 4px 5px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; text-align: center; }
+    .tbl input[type=text]:focus { outline: none; border-color: #5f5e5a; }
     .tbl .row-idx { font-size: 11px; color: #6b6b68; width: 18px; }
     .btn-sm { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; cursor: pointer; }
     .btn-sm:hover { background: #f5f5f3; }
@@ -41,13 +41,16 @@
     .stat-card.hi .num { color: #185FA5; }
     .shift-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .shift-row label { font-size: 13px; color: #6b6b68; }
-    .shift-row input[type=number] { width: 72px; font-size: 13px; padding: 4px 7px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; }
+    .shift-row input[type=text] { width: 72px; font-size: 13px; padding: 4px 7px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; text-align: center; }
     .sim-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem; flex-wrap: wrap; }
     .sim-row label { font-size: 13px; color: #6b6b68; }
     .sim-row input[type=range] { flex: 1; accent-color: #1a1a18; }
     .sim-stat { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 0.75rem; }
     footer { margin-top: 1.5rem; font-size: 11px; color: #a0a09c; text-align: center; }
-    @media (max-width: 600px) { .layout { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 600px) {
+      .layout { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+    }
   </style>
 </head>
 <body>
@@ -68,7 +71,7 @@
         <tfoot>
           <tr>
             <td colspan="2" style="font-size:11px;color:#6b6b68;text-align:right;padding-right:6px;">Σ p(x)</td>
-            <td><span id="soma-val" style="font-size:13px;font-weight:500;color:#1a1a18;">0,000</span></td>
+            <td><span id="soma-val" style="font-size:13px;font-weight:500;color:#1a1a18;">0,00</span></td>
             <td></td>
           </tr>
         </tfoot>
@@ -82,7 +85,7 @@
       <div class="sec-title">Transformação linear (c + x)</div>
       <div class="shift-row">
         <label>Somar a todos os x:</label>
-        <input type="number" id="shift-val" value="0" step="1">
+        <input type="text" id="shift-val" value="0" inputmode="decimal">
         <button class="btn-sm" id="btn-shift">Aplicar</button>
         <button class="btn-sm" id="btn-reset-shift">Desfazer</button>
       </div>
@@ -132,9 +135,13 @@
     btn.title         = isLocked ? 'Travado — clique para liberar' : 'Livre — clique para travar';
   }
 
+  function parseNum(s) { return parseFloat(String(s).replace(',','.')); }
+  function fmt2(v) { return isNaN(v) ? '' : v.toFixed(2); }
+
   function syncPInputs() {
     for(let i=0;i<rows;i++)
-      if(pInputs[i]) pInputs[i].value = isNaN(pVals[i]) ? '' : pVals[i].toFixed(4);
+      if(pInputs[i] && document.activeElement !== pInputs[i])
+        pInputs[i].value = isNaN(pVals[i]) ? '' : fmt2(pVals[i]);
   }
 
   function rebalance(changedIdx) {
@@ -163,7 +170,7 @@
 
   function updateStats() {
     const soma=pVals.reduce((a,v)=>a+(isNaN(v)?0:v),0);
-    document.getElementById('soma-val').textContent=soma.toFixed(3).replace('.',',');
+    document.getElementById('soma-val').textContent=fmt2(soma);
     const fill=document.getElementById('soma-fill');
     fill.style.width=(Math.min(soma,1)*100).toFixed(1)+'%';
     fill.classList.toggle('over',soma>1.0005);
@@ -172,10 +179,10 @@
     if(valid){
       const ex=xs.reduce((a,x,i)=>a+x*ps[i],0);
       const vx=xs.reduce((a,x,i)=>a+ps[i]*(x-ex)**2,0);
-      document.getElementById('ex').textContent=ex.toFixed(4).replace('.',',');
-      document.getElementById('dp').textContent=Math.sqrt(vx).toFixed(4).replace('.',',');
-      document.getElementById('vx').textContent=vx.toFixed(4).replace('.',',');
-      document.getElementById('soma-card').textContent=soma.toFixed(4).replace('.',',');
+      document.getElementById('ex').textContent=fmt2(ex);
+      document.getElementById('dp').textContent=fmt2(Math.sqrt(vx));
+      document.getElementById('vx').textContent=fmt2(vx);
+      document.getElementById('soma-card').textContent=fmt2(soma);
     } else {
       ['ex','dp','vx','soma-card'].forEach(id=>document.getElementById(id).textContent='—');
     }
@@ -188,24 +195,33 @@
       const tr=document.createElement('tr');
       const tdIdx=document.createElement('td'); tdIdx.className='row-idx'; tdIdx.textContent=i+1;
       const tdX=document.createElement('td');
-      const inpX=document.createElement('input'); inpX.type='number'; inpX.step='1'; inpX.placeholder='x';
+      const inpX=document.createElement('input');
+      inpX.type='text'; inpX.inputMode='decimal'; inpX.placeholder='x';
       if(!isNaN(xVals[i])) inpX.value=xVals[i];
-      inpX.addEventListener('input',(function(ii){ return function(){ origX=null; xVals[ii]=parseFloat(this.value); updateStats(); }; })(i));
+      inpX.addEventListener('input',(function(ii){ return function(){
+        origX=null; xVals[ii]=parseNum(this.value); updateStats();
+      }; })(i));
       xInputs.push(inpX); tdX.appendChild(inpX);
       const tdP=document.createElement('td');
-      const inpP=document.createElement('input'); inpP.type='number'; inpP.step='0.001'; inpP.min='0'; inpP.max='1'; inpP.placeholder='p(x)';
-      if(!isNaN(pVals[i])) inpP.value=pVals[i].toFixed(4);
+      const inpP=document.createElement('input');
+      inpP.type='text'; inpP.inputMode='decimal'; inpP.placeholder='p(x)';
+      if(!isNaN(pVals[i])) inpP.value=fmt2(pVals[i]);
       inpP.addEventListener('input',(function(ii){ return function(){
-        const v=parseFloat(this.value);
+        const v=parseNum(this.value);
         if(!isNaN(v)){
           if(locked[ii]){ locked[ii]=false; applyLockStyle(lockBtns[ii],false); }
           pVals[ii]=v; rebalance(ii); syncPInputs(); updateStats();
         }
       }; })(i));
+      inpP.addEventListener('blur',(function(ii){ return function(){
+        if(!isNaN(pVals[ii])) this.value=fmt2(pVals[ii]);
+      }; })(i));
       pInputs.push(inpP); tdP.appendChild(inpP);
       const tdL=document.createElement('td');
       const btn=document.createElement('button'); applyLockStyle(btn,locked[i]);
-      btn.addEventListener('click',(function(ii){ return function(){ locked[ii]=!locked[ii]; applyLockStyle(lockBtns[ii],locked[ii]); }; })(i));
+      btn.addEventListener('click',(function(ii){ return function(){
+        locked[ii]=!locked[ii]; applyLockStyle(lockBtns[ii],locked[ii]);
+      }; })(i));
       lockBtns.push(btn); tdL.appendChild(btn);
       tr.appendChild(tdIdx); tr.appendChild(tdX); tr.appendChild(tdP); tr.appendChild(tdL);
       tbody.appendChild(tr);
@@ -241,7 +257,7 @@
   });
 
   document.getElementById('btn-shift').addEventListener('click',()=>{
-    const c=parseFloat(document.getElementById('shift-val').value);
+    const c=parseNum(document.getElementById('shift-val').value);
     if(isNaN(c)) return;
     if(!origX) origX=[...xVals];
     xVals=origX.map(v=>v+c); buildTable();
@@ -273,9 +289,9 @@
     }
     const mean=samples.reduce((a,v)=>a+v,0)/n;
     const variance=samples.reduce((a,v)=>a+(v-mean)**2,0)/n;
-    document.getElementById('sim-mean').textContent=mean.toFixed(4).replace('.',',');
-    document.getElementById('sim-dp').textContent=Math.sqrt(variance).toFixed(4).replace('.',',');
-    document.getElementById('sim-ex').textContent=ex.toFixed(4).replace('.',',');
+    document.getElementById('sim-mean').textContent=fmt2(mean);
+    document.getElementById('sim-dp').textContent=fmt2(Math.sqrt(variance));
+    document.getElementById('sim-ex').textContent=fmt2(ex);
     const freq={}; xs.forEach(x=>freq[x]=0);
     samples.forEach(v=>{ if(freq[v]!==undefined) freq[v]++; });
     const labels=xs.map(String), data=xs.map(x=>freq[x]||0);
