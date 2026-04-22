@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distribuição Normal de Probabilidade</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f3; color: #1a1a18; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .container { background: #fff; border-radius: 16px; border: 0.5px solid rgba(0,0,0,0.12); padding: 2rem; width: 100%; max-width: 960px; }
+    h1 { font-size: 18px; font-weight: 500; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 13px; color: #6b6b68; margin-bottom: 1.75rem; }
+    .sec-title { font-size: 11px; font-weight: 500; color: #6b6b68; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .param-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .param-row label { font-size: 12px; color: #6b6b68; min-width: 60px; }
+    .param-row input[type=text] { width: 72px; font-size: 13px; padding: 3px 6px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; text-align: center; }
+    .sl-block { margin-bottom: 14px; }
+    .sl-header { display: flex; align-items: baseline; gap: 6px; margin-bottom: 3px; }
+    .sl-label { font-size: 13px; font-weight: 500; color: #1a1a18; min-width: 16px; }
+    .sl-cur { font-size: 15px; font-weight: 500; color: #1a1a18; min-width: 52px; }
+    .sl-orig-label { font-size: 10px; color: #6b6b68; margin-left: auto; }
+    .sl-orig-val { font-size: 11px; font-weight: 500; color: #E24B4A; min-width: 40px; text-align: right; }
+    .sl-track-wrap { position: relative; padding-bottom: 10px; }
+    .sl-track-wrap input[type=range] { width: 100%; display: block; accent-color: #1a1a18; }
+    .sl-marker-row { position: absolute; bottom: 0; left: 0; right: 0; height: 8px; pointer-events: none; }
+    .sl-marker { position: absolute; bottom: 0; width: 10px; height: 8px; cursor: pointer; pointer-events: auto; transform: translateX(-50%); display: flex; align-items: flex-end; justify-content: center; }
+    .sl-marker::before { content: ''; display: block; width: 2px; height: 8px; background: #E24B4A; border-radius: 1px; }
+    .sl-marker:hover::before { background: #A32D2D; height: 9px; }
+    .sc { background: #f5f5f3; border-radius: 8px; padding: 0.55rem 0.7rem; }
+    .sc .lbl { font-size: 11px; color: #6b6b68; margin-bottom: 2px; }
+    .sc .num { font-size: 16px; font-weight: 500; color: #1a1a18; }
+    .sc.hi { background: #e6f1fb; }
+    .sc.hi .lbl { color: #185FA5; }
+    .sc.hi .num { color: #185FA5; }
+    .sc.gr { background: #eaf3de; }
+    .sc.gr .lbl { color: #3B6D11; }
+    .sc.gr .num { color: #3B6D11; }
+    .stat-grid3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-bottom: 1rem; }
+    .stat-grid4 { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-bottom: 1rem; }
+    .btn-sm { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; cursor: pointer; }
+    .btn-sm:hover { background: #f5f5f3; }
+    .btn-primary { font-size: 12px; padding: 4px 14px; border-radius: 6px; border: 1.5px solid #185FA5; background: #378ADD; color: #fff; cursor: pointer; font-weight: 500; }
+    .btn-primary:hover { background: #185FA5; }
+    .sim-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem; }
+    .sim-row label { font-size: 12px; color: #6b6b68; }
+    .sim-row input[type=range] { flex: 1; accent-color: #1a1a18; }
+    .x-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .x-row label { font-size: 12px; color: #6b6b68; min-width: 50px; }
+    .x-row input[type=text] { width: 80px; font-size: 13px; padding: 3px 6px; border-radius: 6px; border: 0.5px solid #b4b2a9; background: #fff; color: #1a1a18; text-align: center; }
+    .divider { border: none; border-top: 0.5px solid rgba(0,0,0,0.08); margin: 0.9rem 0; }
+    .note { font-size: 10px; color: #6b6b68; font-style: italic; margin-top: 3px; }
+    .layout { display: grid; grid-template-columns: 210px minmax(0,1fr); gap: 20px; align-items: start; }
+    footer { margin-top: 1.5rem; font-size: 11px; color: #a0a09c; text-align: center; }
+    @media (max-width: 600px) { .layout { grid-template-columns: 1fr; } .stat-grid4 { grid-template-columns: repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Distribuição Normal de Probabilidade</h1>
+  <p class="subtitle">Explore a curva normal, calcule probabilidades e simule amostras</p>
+
+  <div class="layout">
+    <div>
+      <div class="sec-title">Parâmetros</div>
+      <div class="param-row"><label>Média (μ)</label><input type="text" id="inp-mu" value="100" inputmode="decimal"></div>
+      <div class="param-row"><label>Desvio (σ)</label><input type="text" id="inp-sigma" value="15" inputmode="decimal"></div>
+      <button class="btn-primary" id="btn-update" style="margin-bottom:4px;">Atualizar</button>
+      <p class="note" id="axis-info">x ∈ [10, 190]</p>
+
+      <hr class="divider">
+      <div class="sec-title">Exploração por slide</div>
+      <p style="font-size:10px;color:#6b6b68;margin-bottom:8px;">Barra <span style="color:#E24B4A;font-weight:500;">▼</span> = valor original · clique para voltar</p>
+
+      <div class="sl-block">
+        <div class="sl-header">
+          <span class="sl-label">μ</span>
+          <span class="sl-cur" id="sl-mu-out">100,0</span>
+          <span class="sl-orig-label">original:</span>
+          <span class="sl-orig-val" id="orig-mu-val">100,0</span>
+        </div>
+        <div class="sl-track-wrap">
+          <input type="range" id="sl-mu" min="77.5" max="122.5" step="0.5" value="100">
+          <div class="sl-marker-row"><div class="sl-marker" id="mark-mu" title="Clique para voltar ao valor original"></div></div>
+        </div>
+      </div>
+
+      <div class="sl-block">
+        <div class="sl-header">
+          <span class="sl-label">σ</span>
+          <span class="sl-cur" id="sl-sigma-out">15,0</span>
+          <span class="sl-orig-label">original:</span>
+          <span class="sl-orig-val" id="orig-sigma-val">15,0</span>
+        </div>
+        <div class="sl-track-wrap">
+          <input type="range" id="sl-sigma" min="7.5" max="30" step="0.25" value="15">
+          <div class="sl-marker-row"><div class="sl-marker" id="mark-sigma" title="Clique para voltar ao valor original"></div></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="sec-title">Testar x</div>
+      <div class="x-row">
+        <label>Valor x</label>
+        <input type="text" id="inp-x" placeholder="digite x" inputmode="decimal">
+        <button class="btn-sm" id="btn-calcx">▶</button>
+        <button class="btn-sm" id="btn-clearx">✕</button>
+      </div>
+      <div class="stat-grid3">
+        <div class="sc"><div class="lbl">x</div><div class="num" id="res-x">—</div></div>
+        <div class="sc hi"><div class="lbl">z</div><div class="num" id="res-z">—</div></div>
+        <div class="sc gr"><div class="lbl">P(X&lt;x)</div><div class="num" id="res-p">—</div></div>
+      </div>
+
+      <hr class="divider">
+      <div class="sec-title">Simulação</div>
+      <div class="sim-row">
+        <label>n:</label>
+        <input type="range" id="sim-n" min="10" max="1000" step="10" value="100">
+        <span style="font-size:13px;font-weight:500;color:#1a1a18;min-width:36px;" id="sim-n-out">100</span>
+        <button class="btn-sm" id="btn-sim">Simular</button>
+      </div>
+      <div class="stat-grid4">
+        <div class="sc"><div class="lbl">μ ref.</div><div class="num" id="sim-mu">100,00</div></div>
+        <div class="sc"><div class="lbl">σ ref.</div><div class="num" id="sim-sigma">15,00</div></div>
+        <div class="sc hi"><div class="lbl">Média</div><div class="num" id="sim-mean">—</div></div>
+        <div class="sc hi"><div class="lbl">DP</div><div class="num" id="sim-dp">—</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">Curva normal</div>
+      <div style="position:relative;width:100%;height:270px;"><canvas id="chart-normal"></canvas></div>
+      <div style="margin-top:1rem;">
+        <div class="sec-title">Histograma da simulação</div>
+        <div style="position:relative;width:100%;height:230px;"><canvas id="chart-hist"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>Distribuição Normal · Material didático — Estatística · PUC-Campinas</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  let chartNormal=null,chartHist=null,currentX=null;
+  let fixedMu=100,fixedSigma=15,axisXmin,axisXmax,axisYmax;
+
+  function parseNum(s){return parseFloat(String(s).replace(',','.'))}
+  function fmt1(v){return isNaN(v)?'—':v.toFixed(1).replace('.',',')}
+  function fmt2(v){return isNaN(v)?'—':v.toFixed(2).replace('.',',')}
+  function normalPDF(x,mu,s){return Math.exp(-0.5*((x-mu)/s)**2)/(s*Math.sqrt(2*Math.PI))}
+  function erf(x){
+    const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+    const sg=x<0?-1:1;x=Math.abs(x);const t=1/(1+p*x);
+    return sg*(1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));
+  }
+  function normalCDF(x,mu,s){return 0.5*(1+erf((x-mu)/(s*Math.sqrt(2))))}
+
+  function computeAxes(mu,sigma){
+    axisXmin=(mu-1.5*sigma)-3.5*(sigma*2.0);
+    axisXmax=(mu+1.5*sigma)+3.5*(sigma*2.0);
+    axisYmax=normalPDF(0,0,sigma*0.5)*1.18;
+  }
+
+  function positionMark(markId,slId,origVal){
+    const sl=document.getElementById(slId);
+    const pct=Math.max(0,Math.min(1,(origVal-parseFloat(sl.min))/(parseFloat(sl.max)-parseFloat(sl.min))));
+    const wrap=sl.closest('.sl-track-wrap');if(!wrap)return;
+    const thumbW=16,trackW=wrap.offsetWidth-thumbW;
+    document.getElementById(markId).style.left=(thumbW/2+pct*trackW)+'px';
+  }
+
+  function buildNormalChart(mu,sigma,xVal){
+    const N=300,step=(axisXmax-axisXmin)/N;
+    const lineData=[],shadeData=[];
+    for(let i=0;i<=N;i++){
+      const x=axisXmin+i*step,y=normalPDF(x,mu,sigma);
+      lineData.push({x,y});
+      shadeData.push(xVal!==null&&x<=xVal?{x,y}:{x,y:null});
+    }
+    const datasets=[
+      {type:'line',data:lineData,borderColor:'#378ADD',borderWidth:2.5,pointRadius:0,fill:false,tension:0.3,label:'curva'},
+      {type:'line',data:shadeData,borderColor:'transparent',borderWidth:0,pointRadius:0,fill:{target:'origin',above:'rgba(55,138,221,0.20)'},tension:0.3,label:'área'},
+      {type:'scatter',data:[{x:mu,y:normalPDF(mu,mu,sigma)}],backgroundColor:'#1D9E75',pointRadius:6,label:'μ'}
+    ];
+    if(xVal!==null) datasets.push({type:'scatter',data:[{x:xVal,y:normalPDF(xVal,mu,sigma)}],backgroundColor:'#E24B4A',pointRadius:7,label:'x'});
+    if(chartNormal){
+      chartNormal.data.datasets=datasets;
+      chartNormal.options.scales.x.min=axisXmin;chartNormal.options.scales.x.max=axisXmax;
+      chartNormal.options.scales.y.max=axisYmax;chartNormal.update('none');
+    } else {
+      chartNormal=new Chart(document.getElementById('chart-normal'),{
+        type:'scatter',data:{datasets},
+        options:{responsive:true,maintainAspectRatio:false,animation:{duration:220},
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`(${ctx.parsed.x.toFixed(2)}, ${ctx.parsed.y.toFixed(4)})`}}},
+          scales:{
+            x:{type:'linear',min:axisXmin,max:axisXmax,ticks:{color:'#888',font:{size:10},maxTicksLimit:9,callback:v=>v.toFixed(0)},grid:{color:'rgba(128,128,128,0.08)'}},
+            y:{min:0,max:axisYmax,ticks:{color:'#888',font:{size:10},maxTicksLimit:5},grid:{color:'rgba(128,128,128,0.08)'}}
+          }
+        }
+      });
+    }
+  }
+
+  function setupSliders(mu,sigma){
+    const slMu=document.getElementById('sl-mu');
+    slMu.min=mu-1.5*sigma;slMu.max=mu+1.5*sigma;slMu.step=sigma*3/200;slMu.value=mu;
+    document.getElementById('sl-mu-out').textContent=fmt1(mu);
+    document.getElementById('orig-mu-val').textContent=fmt1(mu);
+    const slSig=document.getElementById('sl-sigma');
+    slSig.min=sigma*0.5;slSig.max=sigma*2.0;slSig.step=sigma*1.5/200;slSig.value=sigma;
+    document.getElementById('sl-sigma-out').textContent=fmt1(sigma);
+    document.getElementById('orig-sigma-val').textContent=fmt1(sigma);
+    setTimeout(()=>{positionMark('mark-mu','sl-mu',mu);positionMark('mark-sigma','sl-sigma',sigma);},60);
+  }
+
+  function doUpdate(){
+    const mu=parseNum(document.getElementById('inp-mu').value);
+    const sigma=parseNum(document.getElementById('inp-sigma').value);
+    if(isNaN(mu)||isNaN(sigma)||sigma<=0){alert('Digite valores válidos para μ e σ.');return;}
+    fixedMu=mu;fixedSigma=sigma;
+    computeAxes(mu,sigma);setupSliders(mu,sigma);
+    document.getElementById('axis-info').textContent=`x ∈ [${axisXmin.toFixed(1)}, ${axisXmax.toFixed(1)}]`;
+    if(chartNormal){chartNormal.destroy();chartNormal=null;}
+    buildNormalChart(mu,sigma,currentX);
+    document.getElementById('sim-mu').textContent=fmt2(mu);
+    document.getElementById('sim-sigma').textContent=fmt2(sigma);
+    if(currentX!==null) updateXStats(mu,sigma,currentX);
+  }
+
+  function updateXStats(mu,sigma,x){
+    document.getElementById('res-x').textContent=fmt2(x);
+    document.getElementById('res-z').textContent=fmt2((x-mu)/sigma);
+    document.getElementById('res-p').textContent=(normalCDF(x,mu,sigma)*100).toFixed(2).replace('.',',')+'%';
+  }
+
+  document.getElementById('btn-update').addEventListener('click',doUpdate);
+  document.getElementById('inp-mu').addEventListener('keydown',e=>{if(e.key==='Enter')doUpdate();});
+  document.getElementById('inp-sigma').addEventListener('keydown',e=>{if(e.key==='Enter')doUpdate();});
+
+  document.getElementById('sl-mu').addEventListener('input',function(){
+    const mu=parseFloat(this.value),sigma=parseFloat(document.getElementById('sl-sigma').value);
+    document.getElementById('sl-mu-out').textContent=fmt1(mu);
+    buildNormalChart(mu,sigma,currentX);if(currentX!==null)updateXStats(mu,sigma,currentX);
+  });
+  document.getElementById('sl-sigma').addEventListener('input',function(){
+    const mu=parseFloat(document.getElementById('sl-mu').value),sigma=parseFloat(this.value);
+    document.getElementById('sl-sigma-out').textContent=fmt1(sigma);
+    buildNormalChart(mu,sigma,currentX);if(currentX!==null)updateXStats(mu,sigma,currentX);
+  });
+
+  document.getElementById('mark-mu').addEventListener('click',()=>{
+    document.getElementById('sl-mu').value=fixedMu;
+    document.getElementById('sl-mu-out').textContent=fmt1(fixedMu);
+    const sigma=parseFloat(document.getElementById('sl-sigma').value);
+    buildNormalChart(fixedMu,sigma,currentX);if(currentX!==null)updateXStats(fixedMu,sigma,currentX);
+  });
+  document.getElementById('mark-sigma').addEventListener('click',()=>{
+    document.getElementById('sl-sigma').value=fixedSigma;
+    document.getElementById('sl-sigma-out').textContent=fmt1(fixedSigma);
+    const mu=parseFloat(document.getElementById('sl-mu').value);
+    buildNormalChart(mu,fixedSigma,currentX);if(currentX!==null)updateXStats(mu,fixedSigma,currentX);
+  });
+
+  document.getElementById('btn-calcx').addEventListener('click',()=>{
+    const mu=parseFloat(document.getElementById('sl-mu').value);
+    const sigma=parseFloat(document.getElementById('sl-sigma').value);
+    const x=parseNum(document.getElementById('inp-x').value);
+    if(isNaN(x)){alert('Digite um valor numérico para x.');return;}
+    currentX=x;updateXStats(mu,sigma,x);buildNormalChart(mu,sigma,x);
+  });
+  document.getElementById('btn-clearx').addEventListener('click',()=>{
+    currentX=null;document.getElementById('inp-x').value='';
+    ['res-x','res-z','res-p'].forEach(id=>document.getElementById(id).textContent='—');
+    buildNormalChart(parseFloat(document.getElementById('sl-mu').value),parseFloat(document.getElementById('sl-sigma').value),null);
+  });
+
+  document.getElementById('sim-n').addEventListener('input',function(){document.getElementById('sim-n-out').textContent=this.value;});
+  document.getElementById('btn-sim').addEventListener('click',()=>{
+    const mu=fixedMu,sigma=fixedSigma,n=+document.getElementById('sim-n').value;
+    const samples=[];
+    for(let k=0;k<n;k++){
+      let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();
+      samples.push(mu+sigma*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v));
+    }
+    const mean=samples.reduce((a,v)=>a+v,0)/n;
+    const variance=samples.reduce((a,v)=>a+(v-mean)**2,0)/n;
+    document.getElementById('sim-mean').textContent=fmt2(mean);
+    document.getElementById('sim-dp').textContent=fmt2(Math.sqrt(variance));
+    const nBins=Math.max(5,Math.min(30,Math.round(Math.sqrt(n))));
+    const minV=Math.min(...samples),maxV=Math.max(...samples),binW=(maxV-minV)/nBins||1;
+    const bins=Array(nBins).fill(0);
+    samples.forEach(v=>{let idx=Math.floor((v-minV)/binW);if(idx>=nBins)idx=nBins-1;bins[idx]++;});
+    const binLabels=bins.map((_,i)=>(minV+(i+0.5)*binW).toFixed(1));
+    const binDensity=bins.map(c=>c/(n*binW));
+    if(chartHist){chartHist.destroy();chartHist=null;}
+    chartHist=new Chart(document.getElementById('chart-hist'),{
+      type:'bar',
+      data:{labels:binLabels,datasets:[
+        {type:'bar',data:binDensity,backgroundColor:'rgba(55,138,221,0.35)',borderColor:'#378ADD',borderWidth:1,barPercentage:1,categoryPercentage:1},
+        {type:'line',data:binLabels.map(l=>normalPDF(parseFloat(l),mu,sigma)),borderColor:'#E24B4A',borderWidth:2,pointRadius:0,tension:0.4,fill:false}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:'#888',font:{size:10},maxTicksLimit:8},grid:{display:false}},
+          y:{ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(128,128,128,0.08)'}}
+        }
+      }
+    });
+  });
+
+  computeAxes(fixedMu,fixedSigma);setupSliders(fixedMu,fixedSigma);
+  document.getElementById('axis-info').textContent=`x ∈ [${axisXmin.toFixed(1)}, ${axisXmax.toFixed(1)}]`;
+  buildNormalChart(fixedMu,fixedSigma,null);
+</script>
+</body>
+</html>
