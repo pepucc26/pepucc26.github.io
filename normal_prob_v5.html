@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distribuição Normal — Probabilidades</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a18;
+      min-height: 100vh;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Header ── */
+    .app-header { text-align: center; padding: 4px 0 6px; }
+    .app-title  {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a1a18;
+    }
+
+    /* ── Generic card ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      border: 0.5px solid rgba(0,0,0,0.10);
+      padding: 14px 18px;
+    }
+
+    /* ── Section title ── */
+    .sec-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: #6b6b68;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+
+    /* ── Parameters ── */
+    .params-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .param-group { display: flex; flex-direction: column; gap: 4px; }
+    .param-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #6b6b68;
+      letter-spacing: 0.04em;
+    }
+    .num-input {
+      padding: 5px 9px;
+      border: 0.5px solid #b4b2a9;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: 'Courier New', Courier, monospace;
+      color: #1b3d6e;
+      background: #fff;
+      outline: none;
+      width: 110px;
+      transition: border-color 0.15s;
+    }
+    .num-input:focus   { border-color: #1b3d6e; }
+    .num-input:disabled { opacity: 0.35; cursor: not-allowed; background: #f5f5f3; }
+    .num-input::-webkit-inner-spin-button,
+    .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .num-input[type=number] { -moz-appearance: textfield; }
+
+    .dist-tag {
+      margin-left: auto;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: #1b3d6e;
+      padding: 5px 0 5px 14px;
+      border-left: 3px solid #1b3d6e;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    /* ── Graph ── */
+    .graph-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 0.5px solid rgba(0,0,0,0.10);
+      padding: 6px 6px 2px;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .graph-card svg { display: block; width: 100%; height: auto; }
+
+    /* ── x₀ / x₁ controls ── */
+    .xi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 480px) { .xi-grid { grid-template-columns: 1fr; } }
+
+    .xi-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 0.5px solid rgba(0,0,0,0.10);
+      padding: 12px 16px 13px;
+    }
+    .xi-card.x0 { border-top: 3px solid #b83232; }
+    .xi-card.x1 { border-top: 3px solid #1b3d6e; }
+
+    .xi-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+    .xi-name {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 15px;
+      font-weight: bold;
+    }
+    .xi-card.x0 .xi-name { color: #b83232; }
+    .xi-card.x1 .xi-name { color: #1b3d6e; }
+
+    .xi-equals { font-size: 14px; color: #6b6b68; }
+
+    .xi-inf-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .xi-inf-row input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: #1b3d6e;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .xi-inf-label {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      color: #6b6b68;
+      cursor: pointer;
+      user-select: none;
+    }
+    .xi-zval {
+      margin-top: 6px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11px;
+      color: #6b6b68;
+      min-height: 1.1em;
+    }
+
+    /* ── Result ── */
+    .result-card {
+      background: #1b3d6e;
+      border-radius: 12px;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: white;
+    }
+    .result-left      { flex: 1; min-width: 160px; }
+    .result-notation  { font-family: 'Courier New', Courier, monospace; font-size: 13px; opacity: 0.92; word-break: break-all; }
+    .result-detail    { font-size: 12px; opacity: 0.55; margin-top: 5px; }
+    .result-nums      { display: flex; flex-direction: column; align-items: flex-end; }
+    .result-prob      { font-family: 'Courier New', Courier, monospace; font-size: 2rem; font-weight: 600; letter-spacing: 0.02em; }
+    .result-pct       { font-family: 'Courier New', Courier, monospace; font-size: 13px; opacity: 0.5; margin-top: -2px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app-header">
+    <h1 class="app-title">Distribuição Normal</h1>
+  </header>
+
+  <!-- Parameters -->
+  <div class="card">
+    <div class="sec-title">Dados da população</div>
+    <div class="params-row">
+      <div class="param-group">
+        <span class="param-label">Média µ</span>
+        <input type="number" id="muInput" class="num-input" value="0" step="0.5">
+      </div>
+      <div class="param-group">
+        <span class="param-label">Desvio Padrão σ</span>
+        <input type="number" id="sigmaInput" class="num-input" value="1" min="0.01" step="0.5">
+      </div>
+      <div class="dist-tag">
+        X&nbsp;~&nbsp;N(<span id="muDisp">0.0000</span>,&nbsp;<span id="sigmaDisp">1.0000</span>)
+      </div>
+    </div>
+  </div>
+
+  <!-- Graph -->
+  <div class="graph-card">
+    <svg id="svgMain" viewBox="0 0 740 280" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <clipPath id="clip">
+          <rect x="54" y="8" width="660" height="216"/>
+        </clipPath>
+        <filter id="bshadow" x="-20%" y="-30%" width="160%" height="200%">
+          <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+
+      <!-- Clipped: shading, curve, markers, hit zones -->
+      <g clip-path="url(#clip)">
+        <path id="shade1" fill="rgba(27,61,110,0.15)" stroke="none"/>
+        <path id="shade2" fill="rgba(27,61,110,0.15)" stroke="none"/>
+        <path id="curve"  fill="none" stroke="#1b3d6e" stroke-width="2.3" stroke-linejoin="round"/>
+        <line id="x0line" stroke="#b83232" stroke-width="1.8" stroke-dasharray="6,4" visibility="hidden"/>
+        <line id="x1line" stroke="#1b3d6e" stroke-width="1.8" stroke-dasharray="6,4" visibility="hidden"/>
+        <!-- Hit areas -->
+        <rect id="x0hit" y="8" height="216" width="40" fill="none"
+              pointer-events="all" style="cursor:ew-resize" visibility="hidden"/>
+        <rect id="x1hit" y="8" height="216" width="40" fill="none"
+              pointer-events="all" style="cursor:ew-resize" visibility="hidden"/>
+      </g>
+
+      <!-- Drag handles (outside clip → always visible) -->
+      <circle id="x0hdl" r="6" fill="#b83232" stroke="white" stroke-width="2"
+              pointer-events="all" style="cursor:ew-resize" visibility="hidden">
+        <title>Arraste x₀</title>
+      </circle>
+      <circle id="x1hdl" r="6" fill="#1b3d6e" stroke="white" stroke-width="2"
+              pointer-events="all" style="cursor:ew-resize" visibility="hidden">
+        <title>Arraste x₁</title>
+      </circle>
+
+      <!-- Info boxes (tail regions) -->
+      <g id="x0box" filter="url(#bshadow)">
+        <rect id="x0bR" rx="6"
+              fill="rgba(255,255,255,0.95)" stroke="#b83232" stroke-width="1.3"/>
+        <text id="x0bT1"
+              font-family="'Courier New',Courier,monospace" font-size="12"
+              fill="#b83232" font-weight="bold"/>
+        <text id="x0bT2"
+              font-family="'Courier New',Courier,monospace" font-size="11"
+              fill="#6b6b68"/>
+      </g>
+      <g id="x1box" filter="url(#bshadow)">
+        <rect id="x1bR" rx="6"
+              fill="rgba(255,255,255,0.95)" stroke="#1b3d6e" stroke-width="1.3"/>
+        <text id="x1bT1"
+              font-family="'Courier New',Courier,monospace" font-size="12"
+              fill="#1b3d6e" font-weight="bold"/>
+        <text id="x1bT2"
+              font-family="'Courier New',Courier,monospace" font-size="11"
+              fill="#6b6b68"/>
+      </g>
+
+      <!-- Axes -->
+      <g id="axesG"></g>
+
+      <text x="713" y="14" text-anchor="end"
+            font-family="system-ui,sans-serif" font-size="9" fill="#c8c8c4">
+        ↔ arraste as linhas
+      </text>
+    </svg>
+  </div>
+
+  <!-- x₀ / x₁ inputs -->
+  <div class="xi-grid">
+    <!-- x₀ -->
+    <div class="xi-card x0">
+      <div class="xi-top">
+        <span class="xi-name">x₀</span>
+        <span class="xi-equals">=</span>
+        <input type="number" id="x0in" class="num-input" value="-4.0000" step="0.1" disabled>
+      </div>
+      <label class="xi-inf-row">
+        <input type="checkbox" id="x0inf" checked>
+        <span class="xi-inf-label">x₀ &lt; −4σ</span>
+      </label>
+      <div class="xi-zval" id="z0info"></div>
+    </div>
+    <!-- x₁ -->
+    <div class="xi-card x1">
+      <div class="xi-top">
+        <span class="xi-name">x₁</span>
+        <span class="xi-equals">=</span>
+        <input type="number" id="x1in" class="num-input" value="1.0000" step="0.1">
+      </div>
+      <label class="xi-inf-row">
+        <input type="checkbox" id="x1inf">
+        <span class="xi-inf-label">x₁ &gt; +4σ</span>
+      </label>
+      <div class="xi-zval" id="z1info"></div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card">
+    <div class="result-left">
+      <div class="result-notation" id="rNotation">–</div>
+      <div class="result-detail"  id="rDetail">–</div>
+    </div>
+    <div class="result-nums">
+      <div class="result-prob" id="rProb">–</div>
+      <div class="result-pct"  id="rPct">–</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+let mu = 0, sigma = 1;
+let x0v = -4, x1v = 1;
+let x0inf = true, x1inf = false;
+
+// ============================================================
+//  MATH
+// ============================================================
+function erf(x) {
+  const s = x >= 0 ? 1 : -1; x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - ((((1.061405429*t - 1.453152027)*t + 1.421413741)*t - 0.284496736)*t + 0.254829592)*t*Math.exp(-x*x);
+  return s * y;
+}
+const Phi  = z => 0.5 * (1 + erf(z / Math.SQRT2));
+const ncdf = (x,m,s) => Phi((x - m) / s);
+const npdf = (x,m,s) => { const z = (x-m)/s; return Math.exp(-0.5*z*z) / (s * Math.sqrt(2*Math.PI)); };
+
+function calcProb() {
+  if (x0inf && x1inf) return 1;
+  if (x0inf)          return ncdf(x1v, mu, sigma);
+  if (x1inf)          return 1 - ncdf(x0v, mu, sigma);
+  if (x0v <= x1v)     return ncdf(x1v, mu, sigma) - ncdf(x0v, mu, sigma);
+  return ncdf(x1v, mu, sigma) + (1 - ncdf(x0v, mu, sigma));
+}
+
+// ============================================================
+//  SVG LAYOUT
+// ============================================================
+const PL = 54, PT = 20, PW = 660, PH = 200;
+const BY = PT + PH; // baseline y = 220
+
+const xRng = () => [mu - 4*sigma, mu + 4*sigma];
+const svgX = xd  => { const [a,b] = xRng(); return PL + (xd - a) / (b - a) * PW; };
+const svgY = pdf => PT + PH * (1 - pdf / (npdf(mu, mu, sigma) * 1.18));
+
+function curvePath() {
+  const [a,b] = xRng(); let d = '';
+  for (let i = 0; i <= 320; i++) {
+    const x = a + (b-a)*i/320;
+    d += (i ? 'L' : 'M') + svgX(x).toFixed(1) + ',' + svgY(npdf(x,mu,sigma)).toFixed(1);
+  }
+  return d;
+}
+
+function shadePath(xL, xR) {
+  const [a,b] = xRng();
+  const L = xL === -Infinity ? a : Math.max(xL, a);
+  const R = xR ===  Infinity ? b : Math.min(xR, b);
+  if (L >= R) return '';
+  let d = `M${svgX(L).toFixed(1)},${BY}`;
+  for (let i = 0; i <= 200; i++) {
+    const x = L + (R-L)*i/200;
+    d += ` L${svgX(x).toFixed(1)},${svgY(npdf(x,mu,sigma)).toFixed(1)}`;
+  }
+  return d + ` L${svgX(R).toFixed(1)},${BY} Z`;
+}
+
+function fmtAx(v) {
+  const r = 8*sigma;
+  return r >= 1000 ? v.toFixed(0) : r >= 100 ? v.toFixed(1) : r >= 10 ? v.toFixed(2) : r >= 1 ? v.toFixed(3) : v.toFixed(4);
+}
+function fmtV(v) {
+  const a = Math.abs(v);
+  return a >= 1000 ? v.toFixed(1) : a >= 100 ? v.toFixed(2) : a >= 10 ? v.toFixed(3) : v.toFixed(4);
+}
+
+// ============================================================
+//  AXES  — x row on top (BY+17), z row below (BY+33)
+// ============================================================
+function buildAxes() {
+  const F = "system-ui,sans-serif";
+  const M = "'Courier New',Courier,monospace";
+  let s = `<line x1="${PL}" y1="${BY}" x2="${PL+PW}" y2="${BY}" stroke="#c8c8c4" stroke-width="1.2"/>`;
+  for (const z of [-4, 4]) {
+    const x = svgX(mu + z*sigma).toFixed(1);
+    s += `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+4}" stroke="#ccc" stroke-width="1"/>`;
+  }
+  for (let z = -3; z <= 3; z++) {
+    const xd = mu + z*sigma, x = svgX(xd).toFixed(1);
+    const gc = z === 0 ? '#d0d0cc' : '#ebebeb', gw = z === 0 ? '1' : '0.8';
+    s += `<line x1="${x}" y1="${PT}" x2="${x}" y2="${BY}" stroke="${gc}" stroke-width="${gw}" stroke-dasharray="3,5"/>`;
+    s += `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+5}" stroke="#aaa" stroke-width="1"/>`;
+    // x row — top (BY+17)
+    const bold = z === 0 ? ' font-weight="600"' : '';
+    s += `<text x="${x}" y="${BY+17}" text-anchor="middle" font-family="${M}" font-size="10.5" fill="#1b3d6e"${bold}>${fmtAx(xd)}</text>`;
+    // z row — below (BY+33)
+    s += `<text x="${x}" y="${BY+33}" text-anchor="middle" font-family="${F}" font-size="10.5" fill="#a0a09c">${z}</text>`;
+  }
+  // row labels
+  s += `<text x="${PL-6}" y="${BY+17}" text-anchor="end" font-family="${F}" font-size="10" fill="#1b3d6e" font-style="italic">x</text>`;
+  s += `<text x="${PL-6}" y="${BY+33}" text-anchor="end" font-family="${F}" font-size="10" fill="#a0a09c" font-style="italic">z</text>`;
+  // separator
+  s += `<line x1="${PL}" y1="${BY+22}" x2="${PL+PW}" y2="${BY+22}" stroke="#e8e5e0" stroke-width="0.8"/>`;
+  return s;
+}
+
+// ============================================================
+//  INFO BOXES — top aligned with curve peak
+// ============================================================
+const BOX_W = 130, BOX_H = 44, BOX_X0 = 58, BOX_X1 = 552;
+
+function updateBoxes() {
+  // top of boxes = top of curve peak
+  const peakY = svgY(npdf(mu, mu, sigma));
+
+  const xs0 = fmtV(x0v);
+  const zs0 = ((x0v - mu) / sigma).toFixed(4);
+  const xs1 = fmtV(x1v);
+  const zs1 = ((x1v - mu) / sigma).toFixed(4);
+
+  document.getElementById('x0bT1').textContent = `x₀ = ${xs0}`;
+  document.getElementById('x0bT2').textContent = `z₀ = ${zs0}`;
+  document.getElementById('x1bT1').textContent = `x₁ = ${xs1}`;
+  document.getElementById('x1bT2').textContent = `z₁ = ${zs1}`;
+
+  placeBox('x0bR', 'x0bT1', 'x0bT2', BOX_X0, peakY);
+  placeBox('x1bR', 'x1bT1', 'x1bT2', BOX_X1, peakY);
+}
+
+function placeBox(rId, t1Id, t2Id, bx, by) {
+  const r  = document.getElementById(rId);
+  r.setAttribute('x', bx); r.setAttribute('y', by.toFixed(1));
+  r.setAttribute('width', BOX_W); r.setAttribute('height', BOX_H);
+  const t1 = document.getElementById(t1Id);
+  t1.setAttribute('x', bx + 9); t1.setAttribute('y', (by + 17).toFixed(1));
+  const t2 = document.getElementById(t2Id);
+  t2.setAttribute('x', bx + 9); t2.setAttribute('y', (by + 32).toFixed(1));
+}
+
+// ============================================================
+//  MARKER LINES + HANDLES
+// ============================================================
+function setMarker(lineId, hitId, hdlId, xd, isInf) {
+  const [a, b] = xRng();
+  const hide = isInf || xd < a || xd > b;
+  const vis  = hide ? 'hidden' : 'visible';
+  const ln = document.getElementById(lineId);
+  const ht = document.getElementById(hitId);
+  const hd = document.getElementById(hdlId);
+  ln.setAttribute('visibility', vis);
+  ht.setAttribute('visibility', vis);
+  hd.setAttribute('visibility', vis);
+  if (!hide) {
+    const x = svgX(xd).toFixed(1);
+    ln.setAttribute('x1', x); ln.setAttribute('x2', x);
+    ln.setAttribute('y1', PT); ln.setAttribute('y2', BY);
+    ht.setAttribute('x', (svgX(xd) - 20).toFixed(1));
+    hd.setAttribute('cx', x);
+    // handle follows the curve
+    hd.setAttribute('cy', svgY(npdf(xd, mu, sigma)).toFixed(1));
+  }
+}
+
+// ============================================================
+//  RESULT TEXT
+// ============================================================
+function resultText() {
+  const f = fmtV;
+  if (x0inf && x1inf) return { note: 'P(−∞ < X < +∞) = 1', detail: 'Toda a distribuição' };
+  if (x0inf) {
+    const z1 = ((x1v - mu) / sigma).toFixed(4);
+    return { note: `P(X ≤ ${f(x1v)})  =  P(Z ≤ ${z1})`, detail: 'Área à esquerda de x₁' };
+  }
+  if (x1inf) {
+    const z0 = ((x0v - mu) / sigma).toFixed(4);
+    return { note: `P(X ≥ ${f(x0v)})  =  P(Z ≥ ${z0})`, detail: 'Área à direita de x₀' };
+  }
+  const z0 = ((x0v - mu) / sigma).toFixed(4), z1 = ((x1v - mu) / sigma).toFixed(4);
+  if (x0v === x1v) return { note: `P(X = ${f(x0v)})`, detail: 'Probabilidade pontual = 0' };
+  if (x0v < x1v)  return { note: `P(${f(x0v)} ≤ X ≤ ${f(x1v)})`, detail: `z₀ = ${z0}  ·  z₁ = ${z1}` };
+  return { note: `P(X ≤ ${f(x1v)}) + P(X ≥ ${f(x0v)})`, detail: `Duas caudas  ·  z₁ = ${z1}  ·  z₀ = ${z0}` };
+}
+
+// ============================================================
+//  SYNC — garante x0v/x1v dentro do range e campos em sincronia
+// ============================================================
+function syncParams() {
+  const [a, b] = xRng();
+  // quando inf marcado: ancora em ±4σ
+  if (x0inf) { x0v = a; }
+  else        { x0v = Math.min(Math.max(x0v, a), b); }
+  // quando inf marcado: ancora em +4σ
+  if (x1inf)  { x1v = b; }
+  else        { x1v = Math.min(Math.max(x1v, a), b); }
+  // sempre sincroniza os campos de texto
+  document.getElementById('x0in').value = fmtV(x0v);
+  document.getElementById('x1in').value = fmtV(x1v);
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function render() {
+  syncParams();
+  document.getElementById('muDisp').textContent    = fmtV(mu);
+  document.getElementById('sigmaDisp').textContent = fmtV(sigma);
+
+  document.getElementById('curve').setAttribute('d', curvePath());
+
+  // Shading
+  const s1 = document.getElementById('shade1'), s2 = document.getElementById('shade2');
+  if      (x0inf && x1inf) { s1.setAttribute('d', shadePath(-Infinity,  Infinity)); s2.setAttribute('d', ''); }
+  else if (x0inf)          { s1.setAttribute('d', shadePath(-Infinity,  x1v));      s2.setAttribute('d', ''); }
+  else if (x1inf)          { s1.setAttribute('d', shadePath(x0v,        Infinity)); s2.setAttribute('d', ''); }
+  else if (x0v <= x1v)     { s1.setAttribute('d', shadePath(x0v,        x1v));      s2.setAttribute('d', ''); }
+  else { s1.setAttribute('d', shadePath(-Infinity, x1v)); s2.setAttribute('d', shadePath(x0v, Infinity)); }
+
+  setMarker('x0line', 'x0hit', 'x0hdl', x0v, x0inf);
+  setMarker('x1line', 'x1hit', 'x1hdl', x1v, x1inf);
+
+  document.getElementById('axesG').innerHTML = buildAxes();
+  updateBoxes();
+
+  // z info
+  const zi0 = document.getElementById('z0info');
+  const zi1 = document.getElementById('z1info');
+  zi0.textContent = `z₀ = ${((x0v - mu) / sigma).toFixed(4)}`;
+  zi1.textContent = `z₁ = ${((x1v - mu) / sigma).toFixed(4)}`;
+
+  // Result
+  const prob = calcProb();
+  const { note, detail } = resultText();
+  const zero = (!x0inf && !x1inf && x0v === x1v);
+  document.getElementById('rNotation').textContent = note;
+  document.getElementById('rDetail').textContent   = detail;
+  document.getElementById('rProb').textContent     = zero ? '0.0000' : prob.toFixed(4);
+  document.getElementById('rPct').textContent      = zero ? '0.00 %' : (prob * 100).toFixed(2) + ' %';
+}
+
+// ============================================================
+//  DRAG INTERACTION
+// ============================================================
+const svgEl = document.getElementById('svgMain');
+let drag = null;
+
+function dataXfromClient(cx) {
+  const r = svgEl.getBoundingClientRect();
+  const sx = (cx - r.left) / r.width * 740;
+  const [a, b] = xRng();
+  return Math.min(Math.max(a + (sx - PL) / PW * (b - a), a), b);
+}
+
+['x0hit', 'x0hdl'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('mousedown',  e => { if (!x0inf) { e.preventDefault(); drag = 'x0'; } });
+  el.addEventListener('touchstart', e => { if (!x0inf) { e.preventDefault(); drag = 'x0'; } }, { passive: false });
+});
+['x1hit', 'x1hdl'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('mousedown',  e => { if (!x1inf) { e.preventDefault(); drag = 'x1'; } });
+  el.addEventListener('touchstart', e => { if (!x1inf) { e.preventDefault(); drag = 'x1'; } }, { passive: false });
+});
+
+document.addEventListener('mousemove', e => {
+  if (!drag) return;
+  const v = dataXfromClient(e.clientX);
+  if (drag === 'x0') { x0v = v; document.getElementById('x0in').value = fmtV(v); }
+  else               { x1v = v; document.getElementById('x1in').value = fmtV(v); }
+  render();
+});
+document.addEventListener('touchmove', e => {
+  if (!drag) return;
+  e.preventDefault();
+  const v = dataXfromClient(e.touches[0].clientX);
+  if (drag === 'x0') { x0v = v; document.getElementById('x0in').value = fmtV(v); }
+  else               { x1v = v; document.getElementById('x1in').value = fmtV(v); }
+  render();
+}, { passive: false });
+document.addEventListener('mouseup',  () => { drag = null; });
+document.addEventListener('touchend', () => { drag = null; });
+
+// ============================================================
+//  INPUT EVENTS
+// ============================================================
+document.getElementById('muInput').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v)) { mu = v; render(); }
+});
+document.getElementById('sigmaInput').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v) && v > 0) { sigma = v; render(); }
+});
+
+// x₀ checkbox
+document.getElementById('x0inf').addEventListener('change', e => {
+  x0inf = e.target.checked;
+  const inp = document.getElementById('x0in');
+  if (x0inf) {
+    // checking → fix to −4σ (treated as −∞ for probability)
+    x0v = -4 * sigma;
+    inp.value = fmtV(x0v);
+  } else {
+    // unchecking → start at −4σ, now editable
+    x0v = -4 * sigma;
+    inp.value = fmtV(x0v);
+  }
+  inp.disabled = x0inf;
+  render();
+});
+
+// x₁ checkbox
+document.getElementById('x1inf').addEventListener('change', e => {
+  x1inf = e.target.checked;
+  const inp = document.getElementById('x1in');
+  if (x1inf) {
+    x1v = 4 * sigma;
+    inp.value = fmtV(x1v);
+  } else {
+    x1v = 4 * sigma;
+    inp.value = fmtV(x1v);
+  }
+  inp.disabled = x1inf;
+  render();
+});
+
+document.getElementById('x0in').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v)) { x0v = v; render(); }
+});
+document.getElementById('x1in').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v)) { x1v = v; render(); }
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+x0v = -4 * sigma;
+x1v = 1;
+document.getElementById('x0in').value = fmtV(x0v);
+document.getElementById('x1in').value = fmtV(x1v);
+render();
+</script>
+</body>
+</html>
