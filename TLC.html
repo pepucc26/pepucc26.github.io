@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teorema do Limite Central</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f3; color: #1a1a18;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 2rem 1rem;
+    }
+    .container {
+      background: #fff; border-radius: 16px;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      padding: 2rem; width: 100%; max-width: 1040px;
+    }
+
+    /* ── Cabeçalho ── */
+    .app-header { text-align: center; margin-bottom: 1.75rem; }
+    .app-header h1 { font-size: 19px; font-weight: 500; margin-bottom: 0.2rem; }
+    .app-header p  { font-size: 13px; color: #6b6b68; }
+
+    /* ════════════════════════════════════════════
+       GRADE ÚNICA — ambas as linhas de conteúdo
+       Col 1: 195px  |  Col 2: flex  |  Col 3: 195px
+       Os dois charts ficam sempre na coluna 2.
+    ════════════════════════════════════════════ */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 195px minmax(0,1fr) 195px;
+      column-gap: 18px;
+      row-gap: 0;           /* espaçamento vertical controlado manualmente */
+      align-items: start;
+    }
+
+    /* ── Separador da seção de simulação (ocupa as 3 colunas) ── */
+    .sim-sep {
+      grid-column: 1 / -1;
+      border-top: 2px solid #dedad4;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      padding-bottom: 0.6rem;
+    }
+    /* Células da linha de simulação: pequeno padding-bottom */
+    .sim-cell { padding-bottom: 0.5rem; }
+
+    /* ── Painéis laterais (bordas coloridas) ── */
+    .panel-pop  {
+      border-left: 3px solid #378ADD;
+      padding-left: 10px;
+      padding-bottom: 1rem;
+    }
+    .panel-samp {
+      border-right: 3px solid #1D9E75;
+      padding-right: 10px;
+      padding-bottom: 1rem;
+    }
+    /* Painéis da linha de simulação */
+    .panel-sim-l {
+      border-left: 3px solid #7B1FA2;
+      padding-left: 10px;
+    }
+    .panel-sim-r {
+      border-right: 3px solid #7B1FA2;
+      padding-right: 10px;
+    }
+
+    /* ── Títulos de seção coloridos ── */
+    .sec-pop  { font-size: 12px; font-weight: 700; color: #185FA5;
+                text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .sec-samp { font-size: 12px; font-weight: 700; color: #2A7A1A;
+                text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .sec-sim  { font-size: 12px; font-weight: 700; color: #6A1B9A;
+                text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .sec-gray { font-size: 11px; font-weight: 500; color: #6b6b68;
+                text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+
+    /* ── Gráfico (coluna central) ── */
+    .chart-col { display: flex; flex-direction: column; padding-bottom: 1rem; }
+    .chart-title {
+      text-align: center; font-size: 12px; font-weight: 600;
+      color: #1a1a18; margin-bottom: 6px;
+    }
+
+    /* ── Legenda abaixo do gráfico ── */
+    .chart-legend {
+      display: flex; gap: 14px; align-items: center;
+      justify-content: center; flex-wrap: wrap; margin-top: 7px;
+    }
+    .leg-item { display: flex; align-items: center; gap: 5px;
+                font-size: 11px; color: #6b6b68; }
+    .leg-line { width: 22px; height: 3px; border-radius: 2px; }
+    .leg-bar  { width: 14px; height: 10px; border-radius: 2px;
+                background: rgba(55,138,221,0.4); border: 1px solid #378ADD; }
+
+    /* ── Campos e controles ── */
+    .param-row { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+    .param-row label { font-size: 12px; color: #6b6b68; min-width: 65px; }
+    input[type=text] {
+      font-size: 13px; padding: 3px 7px; border-radius: 6px;
+      border: 0.5px solid #b4b2a9; background: #fff;
+      color: #1a1a18; text-align: center; width: 76px;
+    }
+    input.inp-sm { width: 60px; }
+    .sl-row { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+    .sl-row label { font-size: 12px; color: #6b6b68; min-width: 18px; font-weight: 600; }
+    .sl-row input[type=range] { flex: 1; accent-color: #1a1a18; }
+    .sv { font-size: 13px; font-weight: 600; color: #1a1a18; min-width: 36px; }
+    .inline-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .inline-lbl { font-size: 11px; color: #6b6b68; }
+
+    /* ── Botões ── */
+    .btn-blue   { font-size: 12px; padding: 5px 14px; border-radius: 6px;
+                  border: 1.5px solid #185FA5; background: #378ADD;
+                  color: #fff; cursor: pointer; font-weight: 500; }
+    .btn-blue:hover   { background: #185FA5; }
+    .btn-green  { font-size: 12px; padding: 5px 14px; border-radius: 6px;
+                  border: 1.5px solid #2A7A1A; background: #3a8f1a;
+                  color: #fff; cursor: pointer; font-weight: 500; }
+    .btn-green:hover  { background: #2A7A1A; }
+    .btn-purple { font-size: 12px; padding: 5px 14px; border-radius: 6px;
+                  border: 1.5px solid #6A1B9A; background: #7B1FA2;
+                  color: #fff; cursor: pointer; font-weight: 500; }
+    .btn-purple:hover { background: #6A1B9A; }
+
+    /* ── Cards ── */
+    .sc { background: #f5f5f3; border-radius: 8px; padding: 7px 10px; }
+    .sc .lbl { font-size: 10px; color: #6b6b68; margin-bottom: 2px; }
+    .sc .num { font-size: 15px; font-weight: 500; color: #1a1a18; }
+    .sc.bl { background: #ddeeff; }
+    .sc.bl .lbl { color: #185FA5; }
+    .sc.bl .num { color: #185FA5; }
+    .sc.gr { background: #e5f3d8; }
+    .sc.gr .lbl { color: #2A7A1A; }
+    .sc.gr .num { color: #2A7A1A; }
+    .sc.pu { background: #f3e5f5; }
+    .sc.pu .lbl { color: #6A1B9A; }
+    .sc.pu .num { color: #6A1B9A; }
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+
+    /* ── Caixa de fórmula ── */
+    .fbox {
+      background: #f0f7ee; border-left: 3px solid #1D9E75;
+      border-radius: 0 6px 6px 0;
+      padding: 8px 10px; font-size: 12px; margin: 8px 0; line-height: 2.0;
+    }
+
+    /* ── Tabela de comparação ── */
+    .cmp-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+    .cmp-table th { font-size: 10px; font-weight: 600; color: #6b6b68;
+                    text-transform: uppercase; letter-spacing: 0.05em;
+                    padding: 4px 6px; background: #f5f5f3; }
+    .cmp-table td { padding: 5px 6px; border-top: 0.5px solid rgba(0,0,0,0.07);
+                    text-align: center; font-size: 13px; font-weight: 500; }
+    .cv-gr { color: #2A7A1A; }
+    .cv-pu { color: #6A1B9A; }
+
+    .divider { border: none; border-top: 0.5px solid rgba(0,0,0,0.08); margin: 10px 0; }
+    .note { font-size: 10px; color: #6b6b68; font-style: italic; margin-top: 3px; }
+
+    footer { margin-top: 1.5rem; font-size: 11px; color: #a0a09c; text-align: center; }
+
+    /* ── Mobile ── */
+    @media (max-width: 720px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .panel-pop  { border-left: none; border-top: 3px solid #378ADD; padding: 10px 0 10px; }
+      .panel-samp { border-right: none; border-top: 3px solid #1D9E75; padding: 10px 0 10px; }
+      .panel-sim-l { border-left: none; border-top: 3px solid #7B1FA2; padding: 10px 0 10px; }
+      .panel-sim-r { border-right: none; padding: 10px 0 10px; }
+      .sim-sep { margin-top: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ════════════════════════════════════════
+       CABEÇALHO
+  ════════════════════════════════════════════ -->
+  <div class="app-header">
+    <h1>Teorema do Limite Central</h1>
+    <p>Da distribuição populacional à distribuição das médias amostrais — via TLC e simulação</p>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       GRADE ÚNICA — tudo em 3 colunas,
+       charts sempre na coluna do meio (col 2)
+  ════════════════════════════════════════════ -->
+  <div class="main-grid">
+
+    <!-- ── LINHA 1, COL 1 — Distribuição da População ── -->
+    <div class="panel-pop">
+      <div class="sec-pop">Distribuição da População</div>
+      <div class="param-row">
+        <label>Média (μ)</label>
+        <input type="text" id="inp-mu" value="100" inputmode="decimal">
+      </div>
+      <div class="param-row">
+        <label>Desvio (σ)</label>
+        <input type="text" id="inp-sigma" value="15" inputmode="decimal">
+      </div>
+      <button class="btn-blue" id="btn-pop" style="margin-bottom:10px;">Atualizar</button>
+      <div class="g2">
+        <div class="sc bl"><div class="lbl">μ</div><div class="num" id="disp-mu">100,00</div></div>
+        <div class="sc bl"><div class="lbl">σ</div><div class="num" id="disp-sigma">15,00</div></div>
+      </div>
+    </div>
+
+    <!-- ── LINHA 1, COL 2 — Gráfico das curvas ── -->
+    <div class="chart-col">
+      <div class="chart-title">Distribuição da População &amp; Distribuição Amostral</div>
+      <div style="position:relative;width:100%;height:270px;">
+        <canvas id="chart-curves"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="leg-item">
+          <div class="leg-line" style="background:#378ADD;"></div>
+          <span style="color:#185FA5;font-weight:600;">População</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-line" style="background:#1D9E75;"></div>
+          <span style="color:#2A7A1A;font-weight:600;">Dist. Amostral (TLC)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LINHA 1, COL 3 — Distribuição Amostral (B+C) ── -->
+    <div class="panel-samp">
+      <div class="sec-samp">Distribuição Amostral</div>
+      <div class="sl-row">
+        <label>n</label>
+        <input type="range" id="sl-n" min="2" max="200" step="1" value="30">
+        <span class="sv" id="sl-n-out">30</span>
+      </div>
+      <div class="inline-row">
+        <span class="inline-lbl">Digitar n:</span>
+        <input type="text" id="inp-n" class="inp-sm" value="30" inputmode="numeric">
+        <button class="btn-green" id="btn-n">Calcular</button>
+      </div>
+      <div class="fbox">
+        <div style="font-size:11px;color:#2A7A1A;font-weight:600;margin-bottom:2px;">
+          Teorema do Limite Central
+        </div>
+        <div>μ<sub>x̄</sub> = μ = <strong id="tlc-mu">—</strong></div>
+        <div>σ<sub>x̄</sub> = σ/√n = <strong id="tlc-sigma">—</strong></div>
+      </div>
+      <div class="g2">
+        <div class="sc gr"><div class="lbl">μ amostral</div><div class="num" id="samp-mu">—</div></div>
+        <div class="sc gr"><div class="lbl">σ amostral</div><div class="num" id="samp-sigma">—</div></div>
+      </div>
+      <p class="note">← Curva verde ao calcular</p>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         SEPARADOR DA SIMULAÇÃO (3 colunas)
+    ══════════════════════════════════════════ -->
+    <div class="sim-sep">
+      <div class="sec-sim">Simulação — Distribuição das Médias Amostrais</div>
+      <p class="note">Extrai <em>m</em> amostras de tamanho <em>n</em> da população e computa a média de cada uma</p>
+    </div>
+
+
+    <!-- ── LINHA 2, COL 1 — Controles da simulação ── -->
+    <div class="panel-sim-l sim-cell">
+      <div class="sl-row">
+        <label>m</label>
+        <input type="range" id="sl-m" min="20" max="2000" step="20" value="500">
+        <span class="sv" id="sl-m-out">500</span>
+      </div>
+      <div class="inline-row">
+        <span class="inline-lbl">Digitar m:</span>
+        <input type="text" id="inp-m" class="inp-sm" value="500" inputmode="numeric">
+        <button class="btn-purple" id="btn-sim">Simular</button>
+      </div>
+      <p class="note" id="sim-note" style="margin-bottom:6px;"></p>
+    </div>
+
+    <!-- ── LINHA 2, COL 2 — Histograma ── -->
+    <div class="chart-col sim-cell">
+      <div class="chart-title">Histograma das Médias Amostrais Simuladas</div>
+      <div style="position:relative;width:100%;height:270px;">
+        <canvas id="chart-hist"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="leg-item">
+          <div class="leg-bar"></div>
+          <span>Médias simuladas</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-line" style="background:#1D9E75;"></div>
+          <span style="color:#2A7A1A;font-weight:600;">Curva TLC</span>
+        </div>
+      </div>
+      <p class="note" id="hist-note" style="text-align:center;margin-top:3px;"></p>
+    </div>
+
+    <!-- ── LINHA 2, COL 3 — Tabela de comparação ── -->
+    <div class="panel-sim-r sim-cell" id="sim-results" style="visibility:hidden;">
+      <div class="sec-gray">Comparação TLC × Simulação</div>
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Parâmetro</th>
+            <th style="color:#2A7A1A;">TLC</th>
+            <th style="color:#6A1B9A;">Simulação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="text-align:left;color:#6b6b68;">Média (μ<sub>x̄</sub>)</td>
+            <td class="cv-gr" id="cmp-mu-tlc">—</td>
+            <td class="cv-pu" id="cmp-mu-sim">—</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;color:#6b6b68;">Desvio padrão (σ<sub>x̄</sub>)</td>
+            <td class="cv-gr" id="cmp-sigma-tlc">—</td>
+            <td class="cv-pu" id="cmp-sigma-sim">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /main-grid -->
+</div><!-- /container -->
+
+<footer>Teorema do Limite Central · Material didático — Estatística · PUC-Campinas</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ─────────────────────────────────────────────
+//  Estado global
+// ─────────────────────────────────────────────
+let popMu     = 100;
+let popSigma  = 15;
+let sampleN   = 30;
+let sampMu    = NaN;
+let sampSigma = NaN;
+let samplingReady = false;
+
+let axisXmin, axisXmax;   // compartilhado: curvas ↔ histograma
+let chartCurves = null;
+let chartHist   = null;
+
+// ─────────────────────────────────────────────
+//  Utilitários
+// ─────────────────────────────────────────────
+const parseNum = s => parseFloat(String(s).replace(',', '.'));
+const fmt2 = v => isNaN(v) ? '—' : v.toFixed(2).replace('.', ',');
+const fmt4 = v => isNaN(v) ? '—' : v.toFixed(4).replace('.', ',');
+
+function normalPDF(x, mu, s) {
+  return Math.exp(-0.5 * ((x - mu) / s) ** 2) / (s * Math.sqrt(2 * Math.PI));
+}
+function boxMuller(mu, sigma) {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return mu + sigma * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function computeAxis(mu, sigma) {
+  axisXmin = mu - 4 * sigma;
+  axisXmax = mu + 4 * sigma;
+}
+
+// ─────────────────────────────────────────────
+//  Gráfico 1 — Curvas (col 2, linha 1)
+// ─────────────────────────────────────────────
+function buildCurvesChart() {
+  const N = 320, step = (axisXmax - axisXmin) / N;
+
+  const popLine = [];
+  for (let i = 0; i <= N; i++) {
+    const x = axisXmin + i * step;
+    popLine.push({ x, y: normalPDF(x, popMu, popSigma) });
+  }
+
+  let yMax = normalPDF(popMu, popMu, popSigma) * 1.15;
+  const datasets = [
+    { type:'line', data:popLine, borderColor:'#378ADD', borderWidth:2.5,
+      pointRadius:0, fill:false, tension:0.3 }
+  ];
+
+  if (samplingReady) {
+    const sampLine = [];
+    for (let i = 0; i <= N; i++) {
+      const x = axisXmin + i * step;
+      sampLine.push({ x, y: normalPDF(x, sampMu, sampSigma) });
+    }
+    datasets.push({
+      type:'line', data:sampLine, borderColor:'#1D9E75', borderWidth:2.5,
+      pointRadius:0, fill:false, tension:0.3
+    });
+    yMax = Math.max(yMax, normalPDF(sampMu, sampMu, sampSigma) * 1.12);
+  }
+
+  const xCfg = {
+    type:'linear', min:axisXmin, max:axisXmax,
+    ticks:{ color:'#888', font:{size:10}, maxTicksLimit:9, callback: v => v.toFixed(0) },
+    grid:{ color:'rgba(128,128,128,0.08)' }
+  };
+  const yCfg = {
+    min:0, max:yMax,
+    ticks:{ color:'#888', font:{size:10}, maxTicksLimit:5 },
+    grid:{ color:'rgba(128,128,128,0.08)' }
+  };
+
+  if (chartCurves) {
+    chartCurves.data.datasets = datasets;
+    chartCurves.options.scales.x.min = axisXmin;
+    chartCurves.options.scales.x.max = axisXmax;
+    chartCurves.options.scales.y.max = yMax;
+    chartCurves.update('none');
+  } else {
+    chartCurves = new Chart(document.getElementById('chart-curves'), {
+      type:'scatter', data:{ datasets },
+      options:{
+        responsive:true, maintainAspectRatio:false, animation:{duration:250},
+        plugins:{ legend:{display:false},
+          tooltip:{callbacks:{label:ctx =>
+            `(${ctx.parsed.x.toFixed(2)}, ${ctx.parsed.y.toFixed(5)})`}} },
+        scales:{ x:xCfg, y:yCfg }
+      }
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Passo A — atualizar população
+// ─────────────────────────────────────────────
+function doPopUpdate() {
+  const mu  = parseNum(document.getElementById('inp-mu').value);
+  const sig = parseNum(document.getElementById('inp-sigma').value);
+  if (isNaN(mu) || isNaN(sig) || sig <= 0) {
+    alert('Digite valores válidos para μ e σ (σ > 0).'); return;
+  }
+  popMu = mu; popSigma = sig;
+  computeAxis(mu, sig);
+
+  document.getElementById('disp-mu').textContent    = fmt2(mu);
+  document.getElementById('disp-sigma').textContent = fmt2(sig);
+
+  // Resetar C e D
+  samplingReady = false; sampMu = NaN; sampSigma = NaN;
+  ['tlc-mu','tlc-sigma','samp-mu','samp-sigma'].forEach(
+    id => document.getElementById(id).textContent = '—'
+  );
+  document.getElementById('sim-results').style.visibility = 'hidden';
+  document.getElementById('sim-note').textContent  = '';
+  document.getElementById('hist-note').textContent = '';
+  if (chartCurves) { chartCurves.destroy(); chartCurves = null; }
+  if (chartHist)   { chartHist.destroy();   chartHist   = null; }
+  buildCurvesChart();
+}
+
+// ─────────────────────────────────────────────
+//  Passo B → C — calcular TLC
+// ─────────────────────────────────────────────
+function doNUpdate() {
+  const n = Math.round(parseNum(document.getElementById('inp-n').value));
+  if (isNaN(n) || n < 2) { alert('n deve ser um inteiro ≥ 2.'); return; }
+
+  sampleN   = n;
+  sampMu    = popMu;
+  sampSigma = popSigma / Math.sqrt(n);
+  samplingReady = true;
+
+  document.getElementById('sl-n').value           = Math.min(n, 200);
+  document.getElementById('sl-n-out').textContent  = n;
+  document.getElementById('inp-n').value            = n;
+
+  document.getElementById('tlc-mu').textContent    = fmt2(sampMu);
+  document.getElementById('tlc-sigma').textContent = fmt4(sampSigma);
+  document.getElementById('samp-mu').textContent   = fmt2(sampMu);
+  document.getElementById('samp-sigma').textContent = fmt4(sampSigma);
+
+  // Resetar D
+  document.getElementById('sim-results').style.visibility = 'hidden';
+  document.getElementById('hist-note').textContent = '';
+  if (chartHist) { chartHist.destroy(); chartHist = null; }
+
+  buildCurvesChart();
+}
+
+// ─────────────────────────────────────────────
+//  Passo D — simulação
+// ─────────────────────────────────────────────
+function doSimulate() {
+  if (!samplingReady) {
+    alert('Calcule primeiro a distribuição amostral (coluna direita).'); return;
+  }
+  const m = Math.round(parseNum(document.getElementById('inp-m').value));
+  if (isNaN(m) || m < 10) { alert('m deve ser ≥ 10.'); return; }
+
+  document.getElementById('sl-m').value           = Math.min(m, 2000);
+  document.getElementById('sl-m-out').textContent  = m;
+  document.getElementById('inp-m').value            = m;
+  document.getElementById('sim-note').textContent  =
+    m * sampleN > 500000
+      ? `⚠ Calculando ${(m * sampleN).toLocaleString('pt-BR')} valores…`
+      : '';
+
+  // Gerar m médias amostrais
+  const means = [];
+  for (let i = 0; i < m; i++) {
+    let sum = 0;
+    for (let j = 0; j < sampleN; j++) sum += boxMuller(popMu, popSigma);
+    means.push(sum / sampleN);
+  }
+
+  const meanSim = means.reduce((a, v) => a + v, 0) / m;
+  const varSim  = means.reduce((a, v) => a + (v - meanSim) ** 2, 0) / m;
+  const dpSim   = Math.sqrt(varSim);
+
+  // Tabela
+  document.getElementById('cmp-mu-tlc').textContent    = fmt2(sampMu);
+  document.getElementById('cmp-sigma-tlc').textContent = fmt4(sampSigma);
+  document.getElementById('cmp-mu-sim').textContent    = fmt2(meanSim);
+  document.getElementById('cmp-sigma-sim').textContent = fmt4(dpSim);
+  document.getElementById('sim-results').style.visibility = 'visible';
+  document.getElementById('sim-note').textContent = '';
+
+  // ── Histograma — mesma escala-x das curvas ─────────────────────
+  // 100 bins cobrindo exatamente [axisXmin, axisXmax]
+  const nBins = 100;
+  const binW  = (axisXmax - axisXmin) / nBins;
+
+  const bins = new Array(nBins).fill(0);
+  means.forEach(v => {
+    const idx = Math.floor((v - axisXmin) / binW);
+    if (idx >= 0 && idx < nBins) bins[idx]++;
+  });
+
+  const labels  = bins.map((_, i) => (axisXmin + (i + 0.5) * binW).toFixed(2));
+  const density = bins.map(c => c / (m * binW));
+  const tlcLine = labels.map(l => normalPDF(parseFloat(l), sampMu, sampSigma));
+
+  document.getElementById('hist-note').textContent =
+    `${m.toLocaleString('pt-BR')} amostras · n = ${sampleN}`;
+
+  if (chartHist) { chartHist.destroy(); chartHist = null; }
+  chartHist = new Chart(document.getElementById('chart-hist'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          type:'bar', data:density,
+          backgroundColor:'rgba(55,138,221,0.38)',
+          borderColor:'#378ADD', borderWidth:0.5,
+          barPercentage:1, categoryPercentage:1
+        },
+        {
+          type:'line', data:tlcLine,
+          borderColor:'#1D9E75', borderWidth:2.5,
+          pointRadius:0, tension:0.4, fill:false
+        }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, animation:{duration:300},
+      plugins:{ legend:{display:false} },
+      scales: {
+        x:{
+          ticks:{
+            color:'#888', font:{size:10}, maxTicksLimit:9,
+            // Mostrar o valor numérico original (mesmos valores do eixo do gráfico de cima)
+            callback: (val, idx) => parseFloat(labels[idx]).toFixed(0)
+          },
+          grid:{ display:false }
+        },
+        y:{
+          min:0,
+          ticks:{ color:'#888', font:{size:10}, maxTicksLimit:5 },
+          grid:{ color:'rgba(128,128,128,0.08)' }
+        }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+//  Event listeners
+// ─────────────────────────────────────────────
+document.getElementById('btn-pop').addEventListener('click', doPopUpdate);
+document.getElementById('inp-mu').addEventListener('keydown',    e => { if (e.key==='Enter') doPopUpdate(); });
+document.getElementById('inp-sigma').addEventListener('keydown', e => { if (e.key==='Enter') doPopUpdate(); });
+
+document.getElementById('sl-n').addEventListener('input', function () {
+  document.getElementById('sl-n-out').textContent = this.value;
+  document.getElementById('inp-n').value = this.value;
+});
+document.getElementById('btn-n').addEventListener('click', doNUpdate);
+document.getElementById('inp-n').addEventListener('keydown', e => { if (e.key==='Enter') doNUpdate(); });
+
+document.getElementById('sl-m').addEventListener('input', function () {
+  document.getElementById('sl-m-out').textContent = this.value;
+  document.getElementById('inp-m').value = this.value;
+});
+document.getElementById('btn-sim').addEventListener('click', doSimulate);
+document.getElementById('inp-m').addEventListener('keydown', e => { if (e.key==='Enter') doSimulate(); });
+
+// ─────────────────────────────────────────────
+//  Inicialização
+// ─────────────────────────────────────────────
+computeAxis(popMu, popSigma);
+buildCurvesChart();
+</script>
+</body>
+</html>
