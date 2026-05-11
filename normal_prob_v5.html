@@ -8,7 +8,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
       background: #f5f5f3;
       color: #1a1a18;
       min-height: 100vh;
@@ -68,7 +68,7 @@
       border: 0.5px solid #b4b2a9;
       border-radius: 6px;
       font-size: 14px;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
       color: #1b3d6e;
       background: #fff;
       outline: none;
@@ -77,13 +77,14 @@
     }
     .num-input:focus   { border-color: #1b3d6e; }
     .num-input:disabled { opacity: 0.35; cursor: not-allowed; background: #f5f5f3; }
+    /* hide spinners for number-type inputs (mu, sigma) */
     .num-input::-webkit-inner-spin-button,
     .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
     .num-input[type=number] { -moz-appearance: textfield; }
 
     .dist-tag {
       margin-left: auto;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
       font-size: 13px;
       color: #1b3d6e;
       padding: 5px 0 5px 14px;
@@ -128,7 +129,7 @@
       margin-bottom: 9px;
     }
     .xi-name {
-      font-family: 'Courier New', Courier, monospace;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
       font-size: 15px;
       font-weight: bold;
     }
@@ -150,7 +151,7 @@
       flex-shrink: 0;
     }
     .xi-inf-label {
-      font-family: 'Courier New', Courier, monospace;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
       font-size: 12px;
       color: #6b6b68;
       cursor: pointer;
@@ -158,7 +159,7 @@
     }
     .xi-zval {
       margin-top: 6px;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
       font-size: 11px;
       color: #6b6b68;
       min-height: 1.1em;
@@ -177,11 +178,17 @@
       color: white;
     }
     .result-left      { flex: 1; min-width: 160px; }
-    .result-notation  { font-family: 'Courier New', Courier, monospace; font-size: 13px; opacity: 0.92; word-break: break-all; }
+    .result-notation  { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 13px; opacity: 0.92; word-break: break-all; }
     .result-detail    { font-size: 12px; opacity: 0.55; margin-top: 5px; }
     .result-nums      { display: flex; flex-direction: column; align-items: flex-end; }
-    .result-prob      { font-family: 'Courier New', Courier, monospace; font-size: 2rem; font-weight: 600; letter-spacing: 0.02em; }
-    .result-pct       { font-family: 'Courier New', Courier, monospace; font-size: 13px; opacity: 0.5; margin-top: -2px; }
+    /* percentage only — same weight/size as the old probability number */
+    .result-pct {
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -211,7 +218,7 @@
 
   <!-- Graph -->
   <div class="graph-card">
-    <svg id="svgMain" viewBox="0 0 740 280" preserveAspectRatio="xMidYMid meet">
+    <svg id="svgMain" viewBox="0 0 740 290" preserveAspectRatio="xMidYMid meet">
       <defs>
         <clipPath id="clip">
           <rect x="54" y="8" width="660" height="216"/>
@@ -250,20 +257,20 @@
         <rect id="x0bR" rx="6"
               fill="rgba(255,255,255,0.95)" stroke="#b83232" stroke-width="1.3"/>
         <text id="x0bT1"
-              font-family="'Courier New',Courier,monospace" font-size="12"
+              font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="14"
               fill="#b83232" font-weight="bold"/>
         <text id="x0bT2"
-              font-family="'Courier New',Courier,monospace" font-size="11"
+              font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="13"
               fill="#6b6b68"/>
       </g>
       <g id="x1box" filter="url(#bshadow)">
         <rect id="x1bR" rx="6"
               fill="rgba(255,255,255,0.95)" stroke="#1b3d6e" stroke-width="1.3"/>
         <text id="x1bT1"
-              font-family="'Courier New',Courier,monospace" font-size="12"
+              font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="14"
               fill="#1b3d6e" font-weight="bold"/>
         <text id="x1bT2"
-              font-family="'Courier New',Courier,monospace" font-size="11"
+              font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="13"
               fill="#6b6b68"/>
       </g>
 
@@ -284,7 +291,7 @@
       <div class="xi-top">
         <span class="xi-name">x₀</span>
         <span class="xi-equals">=</span>
-        <input type="number" id="x0in" class="num-input" value="-4.0000" step="0.1" disabled>
+        <input type="text" inputmode="decimal" id="x0in" class="num-input" value="-4.0000" disabled>
       </div>
       <label class="xi-inf-row">
         <input type="checkbox" id="x0inf" checked>
@@ -297,7 +304,7 @@
       <div class="xi-top">
         <span class="xi-name">x₁</span>
         <span class="xi-equals">=</span>
-        <input type="number" id="x1in" class="num-input" value="1.0000" step="0.1">
+        <input type="text" inputmode="decimal" id="x1in" class="num-input" value="1.0000">
       </div>
       <label class="xi-inf-row">
         <input type="checkbox" id="x1inf">
@@ -314,8 +321,7 @@
       <div class="result-detail"  id="rDetail">–</div>
     </div>
     <div class="result-nums">
-      <div class="result-prob" id="rProb">–</div>
-      <div class="result-pct"  id="rPct">–</div>
+      <div class="result-pct" id="rPct">–</div>
     </div>
   </div>
 
@@ -392,11 +398,10 @@ function fmtV(v) {
 }
 
 // ============================================================
-//  AXES  — x row on top (BY+17), z row below (BY+33)
+//  AXES  — x row on top (BY+20), z row below (BY+38)
 // ============================================================
 function buildAxes() {
-  const F = "system-ui,sans-serif";
-  const M = "'Courier New',Courier,monospace";
+  const F = "system-ui,-apple-system,'Segoe UI',sans-serif";
   let s = `<line x1="${PL}" y1="${BY}" x2="${PL+PW}" y2="${BY}" stroke="#c8c8c4" stroke-width="1.2"/>`;
   for (const z of [-4, 4]) {
     const x = svgX(mu + z*sigma).toFixed(1);
@@ -407,27 +412,26 @@ function buildAxes() {
     const gc = z === 0 ? '#d0d0cc' : '#ebebeb', gw = z === 0 ? '1' : '0.8';
     s += `<line x1="${x}" y1="${PT}" x2="${x}" y2="${BY}" stroke="${gc}" stroke-width="${gw}" stroke-dasharray="3,5"/>`;
     s += `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+5}" stroke="#aaa" stroke-width="1"/>`;
-    // x row — top (BY+17)
+    // x row (BY+20)
     const bold = z === 0 ? ' font-weight="600"' : '';
-    s += `<text x="${x}" y="${BY+17}" text-anchor="middle" font-family="${M}" font-size="10.5" fill="#1b3d6e"${bold}>${fmtAx(xd)}</text>`;
-    // z row — below (BY+33)
-    s += `<text x="${x}" y="${BY+33}" text-anchor="middle" font-family="${F}" font-size="10.5" fill="#a0a09c">${z}</text>`;
+    s += `<text x="${x}" y="${BY+20}" text-anchor="middle" font-family="${F}" font-size="13" fill="#1b3d6e"${bold}>${fmtAx(xd)}</text>`;
+    // z row (BY+38)
+    s += `<text x="${x}" y="${BY+38}" text-anchor="middle" font-family="${F}" font-size="13" fill="#a0a09c">${z}</text>`;
   }
   // row labels
-  s += `<text x="${PL-6}" y="${BY+17}" text-anchor="end" font-family="${F}" font-size="10" fill="#1b3d6e" font-style="italic">x</text>`;
-  s += `<text x="${PL-6}" y="${BY+33}" text-anchor="end" font-family="${F}" font-size="10" fill="#a0a09c" font-style="italic">z</text>`;
+  s += `<text x="${PL-6}" y="${BY+20}" text-anchor="end" font-family="${F}" font-size="11" fill="#1b3d6e" font-style="italic">x</text>`;
+  s += `<text x="${PL-6}" y="${BY+38}" text-anchor="end" font-family="${F}" font-size="11" fill="#a0a09c" font-style="italic">z</text>`;
   // separator
-  s += `<line x1="${PL}" y1="${BY+22}" x2="${PL+PW}" y2="${BY+22}" stroke="#e8e5e0" stroke-width="0.8"/>`;
+  s += `<line x1="${PL}" y1="${BY+26}" x2="${PL+PW}" y2="${BY+26}" stroke="#e8e5e0" stroke-width="0.8"/>`;
   return s;
 }
 
 // ============================================================
 //  INFO BOXES — top aligned with curve peak
 // ============================================================
-const BOX_W = 130, BOX_H = 44, BOX_X0 = 58, BOX_X1 = 552;
+const BOX_W = 140, BOX_H = 50, BOX_X0 = 58, BOX_X1 = 548;
 
 function updateBoxes() {
-  // top of boxes = top of curve peak
   const peakY = svgY(npdf(mu, mu, sigma));
 
   const xs0 = fmtV(x0v);
@@ -449,9 +453,9 @@ function placeBox(rId, t1Id, t2Id, bx, by) {
   r.setAttribute('x', bx); r.setAttribute('y', by.toFixed(1));
   r.setAttribute('width', BOX_W); r.setAttribute('height', BOX_H);
   const t1 = document.getElementById(t1Id);
-  t1.setAttribute('x', bx + 9); t1.setAttribute('y', (by + 17).toFixed(1));
+  t1.setAttribute('x', bx + 9); t1.setAttribute('y', (by + 19).toFixed(1));
   const t2 = document.getElementById(t2Id);
-  t2.setAttribute('x', bx + 9); t2.setAttribute('y', (by + 32).toFixed(1));
+  t2.setAttribute('x', bx + 9); t2.setAttribute('y', (by + 37).toFixed(1));
 }
 
 // ============================================================
@@ -473,7 +477,6 @@ function setMarker(lineId, hitId, hdlId, xd, isInf) {
     ln.setAttribute('y1', PT); ln.setAttribute('y2', BY);
     ht.setAttribute('x', (svgX(xd) - 20).toFixed(1));
     hd.setAttribute('cx', x);
-    // handle follows the curve
     hd.setAttribute('cy', svgY(npdf(xd, mu, sigma)).toFixed(1));
   }
 }
@@ -500,18 +503,20 @@ function resultText() {
 
 // ============================================================
 //  SYNC — garante x0v/x1v dentro do range e campos em sincronia
+//  Não sobrescreve o campo que o usuário está editando no momento
 // ============================================================
 function syncParams() {
   const [a, b] = xRng();
-  // quando inf marcado: ancora em ±4σ
   if (x0inf) { x0v = a; }
   else        { x0v = Math.min(Math.max(x0v, a), b); }
-  // quando inf marcado: ancora em +4σ
   if (x1inf)  { x1v = b; }
   else        { x1v = Math.min(Math.max(x1v, a), b); }
-  // sempre sincroniza os campos de texto
-  document.getElementById('x0in').value = fmtV(x0v);
-  document.getElementById('x1in').value = fmtV(x1v);
+
+  const x0in = document.getElementById('x0in');
+  const x1in = document.getElementById('x1in');
+  // só atualiza o campo se ele NÃO estiver em foco (evita interromper digitação)
+  if (document.activeElement !== x0in) x0in.value = fmtV(x0v);
+  if (document.activeElement !== x1in) x1in.value = fmtV(x1v);
 }
 
 // ============================================================
@@ -539,10 +544,8 @@ function render() {
   updateBoxes();
 
   // z info
-  const zi0 = document.getElementById('z0info');
-  const zi1 = document.getElementById('z1info');
-  zi0.textContent = `z₀ = ${((x0v - mu) / sigma).toFixed(4)}`;
-  zi1.textContent = `z₁ = ${((x1v - mu) / sigma).toFixed(4)}`;
+  document.getElementById('z0info').textContent = `z₀ = ${((x0v - mu) / sigma).toFixed(4)}`;
+  document.getElementById('z1info').textContent = `z₁ = ${((x1v - mu) / sigma).toFixed(4)}`;
 
   // Result
   const prob = calcProb();
@@ -550,8 +553,7 @@ function render() {
   const zero = (!x0inf && !x1inf && x0v === x1v);
   document.getElementById('rNotation').textContent = note;
   document.getElementById('rDetail').textContent   = detail;
-  document.getElementById('rProb').textContent     = zero ? '0.0000' : prob.toFixed(4);
-  document.getElementById('rPct').textContent      = zero ? '0.00 %' : (prob * 100).toFixed(2) + ' %';
+  document.getElementById('rPct').textContent      = zero ? '0,00 %' : (prob * 100).toFixed(2).replace('.', ',') + ' %';
 }
 
 // ============================================================
@@ -612,15 +614,8 @@ document.getElementById('sigmaInput').addEventListener('input', e => {
 document.getElementById('x0inf').addEventListener('change', e => {
   x0inf = e.target.checked;
   const inp = document.getElementById('x0in');
-  if (x0inf) {
-    // checking → fix to −4σ (treated as −∞ for probability)
-    x0v = -4 * sigma;
-    inp.value = fmtV(x0v);
-  } else {
-    // unchecking → start at −4σ, now editable
-    x0v = -4 * sigma;
-    inp.value = fmtV(x0v);
-  }
+  x0v = -4 * sigma;
+  inp.value = fmtV(x0v);
   inp.disabled = x0inf;
   render();
 });
@@ -629,17 +624,13 @@ document.getElementById('x0inf').addEventListener('change', e => {
 document.getElementById('x1inf').addEventListener('change', e => {
   x1inf = e.target.checked;
   const inp = document.getElementById('x1in');
-  if (x1inf) {
-    x1v = 4 * sigma;
-    inp.value = fmtV(x1v);
-  } else {
-    x1v = 4 * sigma;
-    inp.value = fmtV(x1v);
-  }
+  x1v = 4 * sigma;
+  inp.value = fmtV(x1v);
   inp.disabled = x1inf;
   render();
 });
 
+// x₀ / x₁ input — aceita digitação livre, só atualiza quando o valor é válido
 document.getElementById('x0in').addEventListener('input', e => {
   const v = parseFloat(e.target.value);
   if (!isNaN(v)) { x0v = v; render(); }
@@ -647,6 +638,14 @@ document.getElementById('x0in').addEventListener('input', e => {
 document.getElementById('x1in').addEventListener('input', e => {
   const v = parseFloat(e.target.value);
   if (!isNaN(v)) { x1v = v; render(); }
+});
+
+// ao sair do campo, normaliza a exibição
+document.getElementById('x0in').addEventListener('blur', () => {
+  document.getElementById('x0in').value = fmtV(x0v);
+});
+document.getElementById('x1in').addEventListener('blur', () => {
+  document.getElementById('x1in').value = fmtV(x1v);
 });
 
 // ============================================================
